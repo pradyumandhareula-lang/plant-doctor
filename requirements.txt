@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+streamlit
+langgraph
+langchain-openai
+sqlalchemy
+pydantic
+python-multipart
