@@ -10,4 +10,4 @@ class PlantDiagnostic(Base):
     condition_summary = Column(String, default="Analyzing...")
     detailed_report = Column(Text)
     image_path = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
