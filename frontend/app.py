@@ -4,7 +4,7 @@ with tab2:
     
     try:
         # Fetch data from backend database endpoint
-        history_url = "http://127.0.0.1.8001"
+        history_url = "http://127.0.0"
         response = requests.get(history_url)
         
         if response.status_code == 200:
