@@ -2,6 +2,22 @@
 
 An intelligent plant health assessment application.
 
+## 🚀 How to Run Locally
+
+### 1. Start the Backend Server
+```bash
+cd backend
+venv\Scripts\activate
+uvicorn main:app --reload --port 8001
+```
+
+### 2. Start the Frontend App
+Open a separate terminal window and run:
+```bash
+venv\Scripts\activate
+streamlit run frontend/app.py
+```
+
 ### 🗄️ Database Architecture
 
 This project uses SQLAlchemy to define the data structures for managing historical plant scans. The schema maps diagnostic information into a structured relational format.
