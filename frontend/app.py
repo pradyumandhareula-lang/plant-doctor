@@ -20,14 +20,14 @@ with tab1:
                     backend_url = "https://hf.space"
                     files = {"file": uploaded_file.getvalue()}
                     response = requests.post(backend_url, files=files)
-                    
                     if response.status_code == 200:
-                        st.success("Analysis Complete!")
-                        st.write(response.json().get("diagnosis", "No diagnosis found."))
+                    st.success("Analysis Complete!")
+                    st.write(response.json().get("diagnosis", "No diagnosis found."))
                     else:
                         st.error(f"Backend error: {response.status_code}")
-except Exception as e:
+        except Exception as e:
             st.error(f"Connection error: {str(e)}")
+
 
 with tab2:
     st.header("📋 Past Diagnostic Records")
