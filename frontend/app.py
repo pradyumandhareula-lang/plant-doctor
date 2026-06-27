@@ -26,8 +26,8 @@ with tab1:
                         st.write(response.json().get("diagnosis", "No diagnosis found."))
                     else:
                         st.error(f"Backend error: {response.status_code}")
-                except Exception as e:
-                    st.error(f"Connection error: {str(e)}")
+except Exception as e:
+            st.error(f"Connection error: {str(e)}")
 
 with tab2:
     st.header("📋 Past Diagnostic Records")
