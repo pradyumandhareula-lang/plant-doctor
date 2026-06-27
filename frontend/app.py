@@ -17,14 +17,14 @@ with tab1:
         if st.button("Run Plant Diagnosis 🩺"):
             with st.spinner("Analyzing plant details via pipeline..."):
                  try:
-                    backend_url = "https://hf.space"
-                    files = {"file": uploaded_file.getvalue()}
-                    response = requests.post(backend_url, files=files)
-                    if response.status_code == 200:
-                    st.success("Analysis Complete!")
-                    st.write(response.json().get("diagnosis", "No diagnosis found."))
-                    else:
-                        st.error(f"Backend error: {response.status_code}")
+            backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/predict"
+            files = {"file": uploaded_file.getvalue()}
+            response = requests.post(backend_url, files=files)
+            if response.status_code == 200:
+    st.success("Analysis Complete!")
+    st.write(response.json().get("diagnosis", "No diagnosis found."))
+    else:
+    st.error(f"Backend error: {response.status_code}")
         except Exception as e:
             st.error(f"Connection error: {str(e)}")
 
