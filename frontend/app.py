@@ -23,7 +23,15 @@ with tab1:
                     
                     if response.status_code == 200:
                         st.success("Analysis Complete!")
-                        st.write(response.json().get("diagnosis", "No diagnosis found."))
+                        result = response.json()
+                        
+                        st.subheader(f"Species: {result.get('species', 'Unknown')}")
+                        st.write(f"**Condition:** {result.get('condition', 'N/A')}")
+                        st.write(f"**Confidence:** {result.get('confidence', 'N/A')}")
+                        
+                        st.write("**Care Plan:**")
+                        for step in result.get('care_plan', []):
+                            st.write(f"- {step}")
                     else:
                         st.error(f"Backend error: Received status code {response.status_code}")
                 except Exception as e:
