@@ -17,9 +17,9 @@ with tab1:
         if st.button("Run Plant Diagnosis 🩺"):
             with st.spinner("Analyzing plant details via pipeline..."):
                  try:
-            backend_url = "https://hf.space"
-            files = {"file": uploaded_file.getvalue()}
-            response = requests.post(backend_url, files=files)
+                    backend_url = "https://hf.space"
+                    files = {"file": uploaded_file.getvalue()}
+                    response = requests.post(backend_url, files=files)
                     
                     if response.status_code == 200:
                         st.success("Analysis Complete!")
