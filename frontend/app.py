@@ -17,7 +17,7 @@ with tab1:
         if st.button("Run Plant Diagnosis 🩺"):
             with st.spinner("Analyzing plant details via pipeline..."):
                 try:
-                    backend_url = "https://hf.space"
+                    backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/diagnose"
                     files = {"file": uploaded_file.getvalue()}
                     response = requests.post(backend_url, files=files)
                     
