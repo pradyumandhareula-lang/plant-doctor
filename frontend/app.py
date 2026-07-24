@@ -35,7 +35,7 @@ with tab1:
         
         if st.button("Run Plant Diagnosis 🩺"):
             with st.spinner("Analyzing plant..."):
-                # Clean URL pointing directly to your API endpoint
+                # Direct direct endpoint mapping
                 backend_url = "https://hf.space"
                 
                 try:
