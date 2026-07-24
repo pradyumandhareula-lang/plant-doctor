@@ -6,12 +6,12 @@ st.set_page_config(page_title="Plant Doctor Suite", page_icon="🌿", layout="wi
 st.title("🌿 AI Plant Doctor")
 st.write("Upload a photo of your plant to generate an instant diagnostic report.")
 
-tab1, tab2, tab3 = st.tabs(["🔍 New Scan", "📜 Scan History", "📆 Care Reminders"])
+tab1, tab2, tab3 = st.tabs(["🔍 New Scan", "📜 Scan History", "📅 Care Reminder"])
 
 with tab1:
     uploaded_file = st.file_uploader("Choose a plant photo...", type=["jpg", "jpeg", "png"])
-    
-        if uploaded_file is not None:
+
+    if uploaded_file is not None:
         st.image(uploaded_file, caption="Selected Foliage Photo", use_container_width=False)
         
         if st.button("Run Plant Diagnosis 🩺"):
