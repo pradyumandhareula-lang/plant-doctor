@@ -69,22 +69,17 @@ st.write(result.get("confidence", "Unknown"))
 st.subheader("✅ Care Plan")
 
 for step in result.get("care_plan", []):
-st.write("•", step)
+st.write(f"• {step}")
 
 else:
-
-st.error(
-f"Backend Error: {response.status_code}"
-)
+st.error(f"Backend Error: {response.status_code}")
+st.write(response.text)
 
 except Exception as e:
-
 st.error(f"Connection failed: {e}")
 
 with tab2:
-
-st.info("Scan history feature coming soon.")
+st.info("📜 Scan history feature coming soon.")
 
 with tab3:
-
-st.info("Care reminder feature coming soon.")
+st.info("📅 Care reminder feature coming soon.")
