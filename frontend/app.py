@@ -13,9 +13,7 @@ st.write("Upload a photo of any plant to generate an instant AI diagnostic repor
 tab1, tab2, tab3 = st.tabs(
 ["🔍 New Scan", "📜 Scan History", "📅 Care Reminder"]
 )
-
 with tab1:
-
 uploaded_file = st.file_uploader(
 "Choose a plant photo...",
 type=["jpg", "jpeg", "png"]
