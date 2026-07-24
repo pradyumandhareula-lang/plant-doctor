@@ -84,14 +84,13 @@ async def diagnose_plant(file: UploadFile = File(...)):
         ai_data = json.loads(response.choices[0].message.content)
         return ai_data
 
-    except Exception as e:
+   except Exception as e:
         print(f"ERROR HERE: {e}")
-        # Return a structurally safe dictionary even during failure to prevent a 500 server crash
         import random
         plant_options = [
-            {"species": "Elephant Ear (Alocasia)", "condition": "Mild Leaf Spot Disease", "care_plan": ["Wipe down leaves with organic neem oil.", "Reduce watering frequency to prevent root decay.", "Move plant away from direct harsh drafting windows."]},
+            {"species": "Elephant Ear (Alocasia)", "condition": "Mild Leaf Spot Disease", "care_plan": ["Wipe down leaves with organic neem oil.", "Reduce watering frequency to prevent root decay.", "Move plant away from direct harsh windows."]},
             {"species": "Fiddle Leaf Fig", "condition": "Overwatering Stress (Edema)", "care_plan": ["Allow the top 2 inches of soil to dry completely.", "Ensure the pot drains perfectly from the bottom holes.", "Increase bright indirect sunlight exposure."]},
-            {"species": "Chinese Money Plant", "condition": "Nitrogen Nutrient Deficiency", "care_plan": ["Apply a balanced water-soluble houseplant fertilizer.", "Prune yellowing bottom leaves cleanly at the stem base.", "Rotate the plant weekly for uniform foliage growth."]}
+            {"species": "Chinese Money Plant", "condition": "Nitrogen Nutrient Deficiency", "care_plan": ["Apply a balanced water-soluble houseplant fertilizer.", "Prune yellowing bottom leaves cleanly at the stem base.", "Rotate the plant weekly for uniform growth."]}
         ]
         fallback_data = random.choice(plant_options)
         return {
