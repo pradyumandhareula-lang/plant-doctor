@@ -35,8 +35,8 @@ with tab1:
         
         if st.button("Run Plant Diagnosis 🩺"):
             with st.spinner("Analyzing plant..."):
-                # Direct direct endpoint mapping
-                backend_url = "https://hf.space"
+                # Clean route linking straight to your running FastAPI backend
+                backend_url = "https://pradyuman-dhareula-plant-doctor.hf.space"
                 
                 try:
                     # Construct multipart payload for file transfers
@@ -49,12 +49,20 @@ with tab1:
                     }
                     
                     # Process request payload to Hugging Face
-                    response = requests.post(backend_url, files=files)
+                    response = requests.post(backend_url, files=files, timeout=60)
                     
                     if response.status_code == 200:
                         result = response.json()
                         st.success("Diagnosis Complete!")
-                        st.write(result)
+                        
+                        # Structured metric design for your capstone presentation
+                        st.metric(label="Identified Species", value=result.get("species", "Unknown"))
+                        st.subheader(f"Condition: {result.get('condition', 'N/A')}")
+                        st.write(f"Confidence Level: **{result.get('confidence', '0%')}**")
+                        
+                        st.write("### Recommended Care Plan:")
+                        for step in result.get("care_plan", []):
+                            st.write(f"- {step}")
                     else:
                         st.error(f"Backend Error: Status code {response.status_code}")
                         st.json(response.text)
