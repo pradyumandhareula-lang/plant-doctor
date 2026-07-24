@@ -35,7 +35,8 @@ with tab1:
         
         if st.button("Run Plant Diagnosis 🩺"):
             with st.spinner("Analyzing plant..."):
-                backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space"
+                # Clean URL pointing directly to your API endpoint
+                backend_url = "https://hf.space"
                 
                 try:
                     # Construct multipart payload for file transfers
