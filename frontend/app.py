@@ -18,7 +18,7 @@ with tab1:
             with st.spinner("AI Agent analyzing plant details..."):
                 try:
                     # Connects directly to your live backend server API
-                    backend_url = "https://hf.space"
+                    backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/--api--/diagnose"
                     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
                     response = requests.post(backend_url, files=files)
                     
