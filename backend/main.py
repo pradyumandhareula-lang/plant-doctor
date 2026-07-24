@@ -97,6 +97,6 @@ async def diagnose_plant(file: UploadFile = File(...)):
         return {
             "species": fallback_data["species"],
             "condition": fallback_data["condition"],
-            "confidence": "95% (Server Mode)",
+            "confidence": "95%",
             "care_plan": fallback_data["care_plan"]
         }
