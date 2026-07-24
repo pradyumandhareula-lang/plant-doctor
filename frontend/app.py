@@ -1,4 +1,4 @@
-import streamlit as st
+mport streamlit as st
 import requests
 
 st.set_page_config(page_title="Plant Doctor Suite", page_icon="🌿", layout="wide")
@@ -17,8 +17,10 @@ with tab1:
         if st.button("Run Plant Diagnosis 🩺"):
             with st.spinner("AI Agent analyzing plant details..."):
                 try:
-                    # Connects directly to your live backend server API
-                    backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/--api--/diagnose"
+                    # Direct API reference URL string 
+                    
+                    backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/diagnose"
+                    
                     files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
                     response = requests.post(backend_url, files=files)
                     
@@ -26,7 +28,6 @@ with tab1:
                         st.success("Analysis Complete!")
                         result = response.json()
                         
-                        # The AI model detects and returns these values dynamically
                         st.subheader(f"Species: {result.get('species', 'Unknown')}")
                         st.write(f"**Condition:** {result.get('condition', 'N/A')}")
                         st.write(f"**Confidence:** {result.get('confidence', 'N/A')}")
