@@ -16,24 +16,24 @@ with tab1:
         
         if st.button("Run Plant Diagnosis 🩺"):
             with st.spinner("Analyzing plant details via pipeline..."):
-                  try:
-                    backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/diagnose"
-                    files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-                    response = requests.post(backend_url, files=files)
-
-                    
-                    if response.status_code == 200:
-                        st.success("Analysis Complete!")
-                        result = response.json()
-                        
-                        st.subheader(f"Species: {result.get('species', 'Unknown')}")
-                        st.write(f"**Condition:** {result.get('condition', 'N/A')}")
-                        st.write(f"**Confidence:** {result.get('confidence', 'N/A')}")
-                        
-                        st.write("**Care Plan:**")
-                        for step in result.get('care_plan', []):
-                            st.write(f"- {step}")
-                    else:
-                        st.error(f"Backend error: Received status code {response.status_code}")
-                except Exception as e:
-                    st.error(f"Failed to connect to the backend: {e}")
+                         try:
+            backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/diagnose"
+            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+            response = requests.post(backend_url, files=files)
+            
+            if response.status_code == 200:
+                st.success("Analysis Complete!")
+                result = response.json()
+                
+                st.subheader(f"Species: {result.get('species', 'Unknown')}")
+                st.write(f"**Condition:** {result.get('condition', 'N/A')}")
+                st.write(f"**Confidence:** {result.get('confidence', 'N/A')}")
+                
+                st.write("**Care Plan:**")
+                for step in result.get('care_plan', []):
+                    st.write(f"- {step}")
+            else:
+                st.error(f"Backend error: Received status code {response.status_code}")
+                
+        except Exception as e:
+            st.error(f"Failed to connect to the backend: {e}")
