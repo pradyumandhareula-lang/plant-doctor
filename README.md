@@ -1,3 +1,9 @@
+---
+Title: Plant Doctor Backend
+sdk: docker
+app_file: main.py
+app_port: 7860
+---
 # 🌿 Plant Doctor: Intelligent MVP
 
 An intelligent plant health assessment application.
