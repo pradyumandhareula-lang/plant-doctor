@@ -14,20 +14,20 @@ tab1, tab2, tab3 = st.tabs(
 ["🔍 New Scan", "📜 Scan History", "📅 Care Reminder"]
 )
 with tab1:
-        uploaded_file = st.file_uploader(
-        "Choose a plant photo...",
-        type=["jpg", "jpeg", "png"]
+     uploaded_file = st.file_uploader(
+     "Choose a plant photo...",
+     type=["jpg", "jpeg", "png"]
 )
 
 if uploaded_file is not None:
 
-st.image(uploaded_file, caption="Uploaded Plant", use_container_width=True)
+    st.image(uploaded_file, caption="Uploaded Plant", use_container_width=True)
 
 if st.button("Run Plant Diagnosis 🩺"):
 
-with st.spinner("Analyzing plant..."):
+    with st.spinner("Analyzing plant..."):
 
-backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/diagnose"
+        backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/diagnose"
 
 try:
 
