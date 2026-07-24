@@ -1,71 +1,62 @@
 import streamlit as st
 import requests
+from PIL import Image
+import io
 
-# 1. Page Configuration
-st.set_page_config(
-    page_title="Plant Doctor Suite",
-    page_icon="🌿",
-    layout="wide"
-)
+# Set page configurations
+st.set_page_config(page_title="Plant Doctor Suite", page_icon="🌱", layout="centered")
 
-# 2. Header Elements
-st.title("🌿 AI Plant Doctor")
-st.write("Upload a photo of any plant to generate an instant AI diagnosis.")
+st.title("🌱 AI Plant Doctor")
+st.write("Upload a photo of your plant to generate an instant diagnostic")
 
-# 3. Tab Structure Layout
-tab1, tab2, tab3 = st.tabs([
-    "🔍 New Scan", 
-    "📜 Scan History", 
-    "📅 Care Reminder"
-])
+# Navigation Tabs matching layout design blueprint
+tab1, tab2, tab3 = st.tabs(["🔍 New Scan", "📜 Scan History", "🏥 Care Reminders"])
 
-# 4. Diagnostic Tab Logic
 with tab1:
-    uploaded_file = st.file_uploader(
-        "Choose a plant photo...",
-        type=["jpg", "jpeg", "png"]
-    )
+    uploaded_file = st.file_uploader("Choose a plant photo...", type=["jpg", "jpeg", "png"])
     
     if uploaded_file is not None:
-        st.image(
-            uploaded_file,
-            caption="Uploaded Plant",
-            use_container_width=True
-        )
+        # Display the uploaded plant image visually on screen
+        st.image(uploaded_file, caption="Selected Foliage Photo", use_container_width=True)
         
-        if st.button("Run Plant Diagnosis 🩺"):
-            with st.spinner("Analyzing plant..."):
-                # Clean route linking straight to your running FastAPI backend
-                backend_url = "https://pradyuman-dhareula-plant-doctor.hf.space"
-                
+        if st.button("Run Plant Diagnosis 🚀"):
+            with st.spinner("Analyzing plant details via pipeline..."):
                 try:
-                    # Construct multipart payload for file transfers
-                    files = {
-                        "file": (
-                            uploaded_file.name, 
-                            uploaded_file.getvalue(), 
-                            uploaded_file.type
-                        )
-                    }
+                    # Prepare file payload to send to our running FastAPI
+                    img_bytes = uploaded_file.getvalue()
+                    files = {"file": (uploaded_file.name, img_bytes, uploaded_file.type)}
                     
-                    # Process request payload to Hugging Face
-                    response = requests.post(backend_url, files=files, timeout=60)
+                    # Direct communication link pointing to your running FastAPI backend
+                    # Change to "https://hf.space" when deploying live to Hugging Face!
+                    backend_url = "http://127.0.0.1:8000/predict"
+                    
+                    response = requests.post(backend_url, files=files)
                     
                     if response.status_code == 200:
-                        result = response.json()
-                        st.success("Diagnosis Complete!")
+                        data = response.json()
                         
-                        # Structured metric design for your capstone presentation
-                        st.metric(label="Identified Species", value=result.get("species", "Unknown"))
-                        st.subheader(f"Condition: {result.get('condition', 'N/A')}")
-                        st.write(f"Confidence Level: **{result.get('confidence', '0%')}**")
+                        # Render matching layout items dynamically from main.py return dictionary
+                        st.success(f"✅ {data.get('status')}")
+                        st.subheader(f"🫘 Identified Condition: {data.get('label')}")
+                        st.warning(f"📊 Confidence Level: {data.get('confidence')}%")
                         
-                        st.write("### Recommended Care Plan:")
-                        for step in result.get("care_plan", []):
-                            st.write(f"- {step}")
+                        st.write("### 📋 Actionable Treatment Plan:")
+                        st.info(data.get("treatment_plan"))
+                        
+                        # Save details into temporary session state storage
+                        st.session_state['last_plant'] = data.get('label')
                     else:
-                        st.error(f"Backend Error: Status code {response.status_code}")
-                        st.json(response.text)
+                        st.error(f"Backend Server communication failure: {response.status_code}")
                         
                 except Exception as e:
-                    st.error(f"Could not connect to backend server: {e}")
+                    st.error(f"Connection lost to server: {e}")
+
+with tab2:
+    st.title("📜 Past Diagnostic Records")
+    st.write("Review past historical plant logs compiled inside the system.")
+    st.info("Scan history will populate dynamically once saved to the database backend.")
+
+with tab3:
+    st.title("🏥 Care Reminders")
+    st.write("Keep track of your watering, pruning, and nutrition schedules.")
+    st.info("Reminders panel is configured to read updates periodically.")
