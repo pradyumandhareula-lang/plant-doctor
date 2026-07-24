@@ -15,28 +15,25 @@ tab1, tab2, tab3 = st.tabs(
 )
 
 with tab1:
-
-uploaded_file = st.file_uploader(
-"Choose a plant photo...",
-type=["jpg", "jpeg", "png"]
-)
-
-if uploaded_file is not None:
-
-st.image(
-uploaded_file,
-caption="Uploaded Plant",
-use_container_width=True
-)
-
-if st.button("Run Plant Diagnosis 🩺"):
-
-with st.spinner("Analyzing plant..."):
-
-backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/diagnose"
-
-try:
-
+        uploaded_file = st.file_uploader(
+            "Choose a plant photo...",
+            type=["jpg", "jpeg", "png"]
+        )
+        
+        if uploaded_file is not None:
+            st.image(
+                uploaded_file,
+                caption="Uploaded Plant",
+                use_container_width=True
+            )
+            
+            if st.button("Run Plant Diagnosis 🩺"):
+                with st.spinner("Analyzing plant..."):
+                    backend_url = "https://pradyuman-dhareula-plant-doctor-backend.hf.space/diagnose"
+                    
+                    try:
+                        # Your API request logic goes here
+                        pass
 files = {
 "file": (
 uploaded_file.name,
