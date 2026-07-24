@@ -3,3 +3,8 @@ uvicorn
 python-multipart
 requests
 pydantic
+--index-url https://pytorch.org
+torch
+torchvision
+pillow
+numpy
