@@ -1,36 +1,31 @@
 import os
-import base64
-import json
-import random
-from fastapi import FastAPI, UploadFile, File, HTTPException
+import uvicorn
+from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from openai import OpenAI
+from typing import List
 
-app = FastAPI(title="Plant Doctor Backend")
+app = FastAPI()
 
-# Initialize OpenAI client only if key exists
-OPENAI_KEY = os.environ.get("OPENAI_API_KEY") or "your-key-here"
-client = None
-
-if OPENAI_KEY != "your-key-here" and OPENAI_KEY:
-    try:
-        client = OpenAI(api_key=OPENAI_KEY)
-    except Exception:
-        client = None
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class DiagnosisResponse(BaseModel):
     species: str
     condition: str
     confidence: str
-    care_plan: list[str]
+    care_plan: List[str]
 
 @app.post("/diagnose", response_model=DiagnosisResponse)
 async def diagnose_plant(file: UploadFile = File(...)):
     try:
-        # 1. Read incoming stream bytes
         contents = await file.read()
         
-        # 2. Build graph payload container
         initial_state = {
             "image_bytes": contents,
             "plant_name": "",
@@ -38,13 +33,12 @@ async def diagnose_plant(file: UploadFile = File(...)):
             "detailed_report": ""
         }
         
-        # 3. FIXED IMPORT: Look for agent.py in the same folder directory
-        from .agent import analyze_plant_node
+        # Look for agent.py in your backend subfolder
+        from backend.agent import analyze_plant_node
         result_state = analyze_plant_node(initial_state)
         
-        # 4. Return matching data types mapping directly to DiagnosisResponse 
         return {
-            "species": result_state.get("plant_name", "Unknown Plant"),
+            "species": result_state.get("plant_name", "Dynamic Analysis"),
             "condition": result_state.get("condition_summary", "Healthy and stable."),
             "confidence": "95%",
             "care_plan": [
@@ -54,14 +48,14 @@ async def diagnose_plant(file: UploadFile = File(...)):
         }
         
     except Exception as e:
-        print(f"Internal Route Failure: {str(e)}")
-        # Safe fallback block layout to prevent container crashing
-        import random
-        plant_names = ["Pothos", "Monstera", "Snake Plant", "Succulent"]
-        selected_plant = random.choice(plant_names)
+        # Crucial: This prints the exact problem into your Hugging Face space logs tab!
+        print(f"CRITICAL API FAILURE DESCRIPTION: {str(e)}")
         return {
-            "species": f"Healthy {selected_plant}",
-            "condition": f"Optimal Growth (Fallback Mode due to error: {str(e)})",
-            "confidence": "85%",
-            "care_plan": ["Check soil moisture weekly.", "Ensure indirect sunlight."]
+            "species": f"Fallback Mode Error: {str(e)[:40]}",
+            "condition": "Unable to invoke OpenAI API processing layer. Verify environment variables.",
+            "confidence": "0%",
+            "care_plan": ["Check Hugging Face variables tab for OPENAI_API_KEY.", "Verify API quota limit balances."]
         }
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=7860)
