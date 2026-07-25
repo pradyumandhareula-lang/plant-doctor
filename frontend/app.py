@@ -1,13 +1,5 @@
-
-Pradyuman Dhareula <pradyumandhareula@gmail.com>
-6:17 AM (0 minutes ago)
-to hm_dharula
-
 import streamlit as st
-import base64
-import json
-import hashlib
-from openai import OpenAI
+from backend.agent import analyze_plant_image_with_openai
 
 # --- PAGE SETUP & CONFIGURATION ---
 st.set_page_config(
@@ -15,12 +7,6 @@ st.set_page_config(
     layout="wide", 
     initial_sidebar_state="expanded"
 )
-
-# Initialize OpenAI client directly in the frontend wrapper script
-try:
-    client = OpenAI()
-except Exception:
-    client = None
 
 # --- 1. INITIALIZE GLOBAL SESSION STATE MATRIX ---
 if "analysis_result" not in st.session_state:
@@ -68,54 +54,9 @@ if uploaded_file is not None:
     st.image(uploaded_file, caption="Target Active Memory Processing Stream", use_container_width=True)
     file_bytes = uploaded_file.getvalue()
     
-    # Restored automatic run on file selection
     if st.session_state.last_uploaded_file != uploaded_file.name:
         with st.spinner("Executing real live AI vision analytics..."):
-            
-            # Generate your system payload tracking string via hashlib
-            sha256_hash = hashlib.sha256(file_bytes).hexdigest()
-            target_system_id = f"PLNT-HEX-{sha256_hash[:12].upper()}"
-            
-            # Clear, clean base64 data conversion logic
-            encoded_string = base64.b64encode(file_bytes).decode('utf-8')
-            
-            system_prompt = (
-                "You are an expert plant pathologist AI system. Diagnose the condition of the plant. "
-                "You must return your analysis strictly as a valid JSON object containing exactly two keys:\n"
-                "1. 'confidence': A string representing your calculation certainty (e.g., '94%').\n"
-                "2. 'treatment_plan': A detailed markdown document outlining immediate step-by-step curative solutions."
-            )
-            
-            try:
-                response = client.chat.completions.create(
-                    model=selected_model,
-                    response_format={"type": "json_object"},
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": "Diagnose this plant image matrix payload."},
-                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{encoded_string}"}}
-                            ]
-                        }
-                    ],
-                    temperature=temperature
-                )
-                
-                parsed_result = json.loads(response.choices.message.content)
-                
-                result = {
-                    "target_system_id": target_system_id,
-                    "core_target_confidence": parsed_result.get("confidence", "Unknown %"),
-                    "treatment_plan": parsed_result.get("treatment_plan", "No treatment guidelines parsed.")
-                }
-            except Exception as e:
-                result = {
-                    "target_system_id": target_system_id,
-                    "core_target_confidence": "0% (API Error)",
-                    "treatment_plan": f"### ⚠️ Authentication / API Key Error\nEnsure your OpenAI API Key is valid inside secrets.\n\nError details: `{str(e)}`"
-                }
+            result = analyze_plant_image_with_openai(file_bytes)
             
             st.session_state.analysis_result = result
             st.session_state.last_uploaded_file = uploaded_file.name
@@ -131,7 +72,7 @@ if st.session_state.analysis_result:
     target_id = res.get("target_system_id", "Unknown Specimen Matrix")
     confidence = res.get("core_target_confidence", "0%")
     
-    st.markdown(f"**Target System ID Classification Label:** `{target_id}`")
+    st.markdown(f"**Target System ID Classification Label:** {target_id}")
     st.markdown(f"**Calculated Core Target Confidence:** {confidence}")
     
     st.markdown("---")
