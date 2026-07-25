@@ -3,7 +3,6 @@ import json
 import io
 from PIL import Image
 from google import genai
-from google.genai import types
 
 def get_gemini_api_key():
     key = os.environ.get("GEMINI_API_KEY")
@@ -30,11 +29,8 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
             "treatment_plan": "GEMINI_API_KEY is not configured."
         }
 
-    # Set v1beta API version so gemini-1.5-flash / gemini-2.0-flash routing works
-    client = genai.Client(
-        api_key=api_key,
-        http_options=types.HttpOptions(api_version="v1beta")
-    )
+    # Clean default client initialization
+    client = genai.Client(api_key=api_key)
 
     pil_img = Image.open(io.BytesIO(data))
     
@@ -48,8 +44,9 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
     """
 
     try:
+        # gemini-2.0-flash is the active standard endpoint
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash',
             contents=[prompt, pil_img]
         )
         
