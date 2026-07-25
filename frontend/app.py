@@ -7,7 +7,8 @@ if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 import streamlit as st
-from backend.main import diagnose_plant
+# FIXED: Points precisely to the updated function name inside backend/main.py
+from backend.main import predict_plant_health
 
 st.set_page_config(page_title="Plant Doctor Enterprise Core", page_icon="🌿", layout="centered")
 
@@ -22,7 +23,8 @@ if leaf_profile_file is not None:
     if st.button("Compute Core Graph Inference"):
         with st.spinner("Processing distributed orchestration metrics..."):
             try:
-                processing_payload_result = diagnose_plant(leaf_profile_file)
+                # FIXED: Calls the correct function mapping name
+                processing_payload_result = predict_plant_health(leaf_profile_file)
                 
                 st.success("State Pipeline Evaluation Executed Perfectly")
                 st.subheader("📊 Algorithmic Evaluation Summary")
