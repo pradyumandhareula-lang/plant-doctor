@@ -1,22 +1,42 @@
 import os
 import json
-from PIL import Image
 import io
+from PIL import Image
 from google import genai
-from google.genai.types import HttpOptions
+from google.genai import types
 
-def analyze_plant_image(image_bytes: bytes) -> dict:
-    api_key = os.environ.get("GEMINI_API_KEY")
+def get_gemini_api_key():
+    """Retrieves API key from OS environment or Streamlit secrets safely."""
+    key = os.environ.get("GEMINI_API_KEY")
+    if key:
+        return key
+    try:
+        import streamlit as st
+        if "GEMINI_API_KEY" in st.secrets:
+            return st.secrets["GEMINI_API_KEY"]
+    except Exception:
+        pass
+    return None
+
+def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *args, **kwargs) -> dict:
+    data = image_bytes or file_bytes
+    if data is None and args:
+        data = args[0]
+
+    api_key = get_gemini_api_key()
     if not api_key:
-        raise ValueError("GEMINI_API_KEY environment variable is not set.")
+        return {
+            "target_system_id": "API Key Missing",
+            "core_target_confidence": "0%",
+            "treatment_plan": "GEMINI_API_KEY is not configured in Environment Variables or Streamlit Secrets."
+        }
 
-    # Explicitly instruct the SDK to use the stable v1 API version
     client = genai.Client(
         api_key=api_key,
-        http_options=HttpOptions(api_version="v1")
+        http_options=types.HttpOptions(api_version="v1")
     )
 
-    pil_img = Image.open(io.BytesIO(image_bytes))
+    pil_img = Image.open(io.BytesIO(data))
     
     prompt = """
     You are an expert plant pathologist AI. Analyze the provided image and respond ONLY with a valid JSON object matching this schema:
@@ -28,7 +48,6 @@ def analyze_plant_image(image_bytes: bytes) -> dict:
     """
 
     try:
-        # gemini-2.5-flash runs on the free tier on v1
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=[prompt, pil_img]
@@ -49,6 +68,6 @@ def analyze_plant_image(image_bytes: bytes) -> dict:
             "treatment_plan": f"Vision analysis fault: {str(e)}"
         }
 
-# 💡 ADD THESE ALIASES AT THE BOTTOM:
+# Aliases so any import name works seamlessly
 analyze_plant_image_with_openai = analyze_plant_image
 analyze_plant_image_with_gemini = analyze_plant_image
