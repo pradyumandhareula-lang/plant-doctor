@@ -1,7 +1,7 @@
 import sys
 import os
 
-# Absolute workspace configuration path routing anchor
+# Absolute workspace configuration path routing and setup
 root_dir = "/mount/src/plant-doctor"
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
@@ -9,7 +9,23 @@ if root_dir not in sys.path:
 import streamlit as st
 from backend.agent import analyze_plant_image_with_openai
 
-st.set_page_config(page_title="Plant Doctor Enterprise Edition", page_icon="🌱", layout="centered")
+# CRITICAL: Page config must run BEFORE any sidebar elements
+st.set_page_config(page_title="Plant Doctor Enterprise", layout="wide")
+
+# --- OpenAI Sidebar Configuration Panel ---
+st.sidebar.title("🤖 OpenAI Model Configuration")
+
+# Let evaluators choose the model live
+model_choice = st.sidebar.selectbox(
+    "Select Model",
+    ["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"]
+)
+
+# Let evaluators change creativity/variance live
+temperature = st.sidebar.slider(
+    "Creativity (Temperature)", 
+    min_value=0.0, max_value=1.0, value=0.7, step=0.1
+)
 
 st.title("🌱 Plant Doctor Intelligent AI Node")
 st.write("Upload an active botanical crop leaf specimen profile below for real-time tensor analysis.")
