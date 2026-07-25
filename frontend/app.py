@@ -1,7 +1,7 @@
 import sys
 import os
 import time
-from backend.agent import analyze_plant_image, analyze_plant_image_with_openai
+
 # --- 1. DYNAMIC PATH ROUTING ---
 # Works seamlessly on both Windows locally and Streamlit Cloud
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -15,7 +15,7 @@ if "GEMINI_API_KEY" in st.secrets:
     os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
 if "OPENAI_API_KEY" in st.secrets:
     os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
-
+from backend.agent import analyze_plant_image, analyze_plant_image_with_openai
 # Import backend function after setting up paths & environment variables
 from backend.agent import analyze_plant_image
 
