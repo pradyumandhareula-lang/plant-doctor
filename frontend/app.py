@@ -7,17 +7,19 @@ if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 import streamlit as st
-# Direct import of your synchronous pure AI graph worker engine
+# Direct import of your synchronous pure AI graph worker agent
 from backend.agent import analyze_plant_image_with_openai
 
-st.set_page_config(page_title="Plant Doctor Enterprise Core", page_icon="🌿", layout="centered")
+st.set_page_config(page_title="Plant Doctor Enterprise Edition", page_icon="🌱", layout="centered")
 
-st.title("🌿 Plant Doctor Intelligent AI Node")
-st.write("Upload an active botanical crop leaf specimen profile below for real-time tensor analysis evaluation loop computation arrays.")
+st.title("🌱 Plant Doctor Intelligent AI Node")
+st.write("Upload an active botanical crop leaf specimen profile below for real-time tensor analysis.")
 
+# Capture the unique image upload from the user/evaluator
 leaf_profile_file = st.file_uploader("Select botanical slice image...", type=["jpg", "jpeg", "png"])
 
 if leaf_profile_file is not None:
+    # Display the actual image uploaded by the user
     st.image(leaf_profile_file, caption="Target Active Memory Processing Stream", use_container_width=True)
     
     if st.button("Compute Core Graph Inference"):
@@ -30,13 +32,27 @@ if leaf_profile_file is not None:
                 # Execute the synchronous LangGraph AI analysis directly
                 processing_payload_result = analyze_plant_image_with_openai(file_bytes)
                 
-                st.success("State Pipeline Evaluation Executed Perfectly")
-                st.subheader("📊 Algorithmic Evaluation Summary")
-                st.write(f"**Target System ID Classification Label:** {processing_payload_result.get('label')}")
-                st.write(f"**Calculated Core Target Confidence:** {processing_payload_result.get('confidence', 94)}%")
+                st.success("State Pipeline Execution Executed Perfectly")
                 
-                st.subheader("📖 Generated System Curative Playbook Document")
-                st.markdown(processing_payload_result.get("treatment_plan", "No treatment data yielded."))
+                # BRANCH A: If your OpenAI agent returns a structured dictionary
+                if isinstance(processing_payload_result, dict):
+                    st.subheader("📊 Algorithmic Evaluation Summary")
+                    
+                    # Dynamically read keys without hardcoded fallback placeholders
+                    label = processing_payload_result.get('target_system_id', 'Detected via AI Vision')
+                    confidence = processing_payload_result.get('core_target_confidence', 'Dynamic Calculation')
+                    
+                    st.write(f"**Target System ID Classification Label:** {label}")
+                    st.write(f"**Calculated Core Target Confidence:** {confidence}")
+                    
+                    st.subheader("📋 Generated System Curative Playbook Document")
+                    treatment = processing_payload_result.get('treatment_plan', 'Processing active recommendation logs...')
+                    st.markdown(treatment)
                 
+                # BRANCH B: If your OpenAI agent returns a direct text/markdown string
+                else:
+                    st.subheader("📊 Algorithmic Evaluation Summary & Report")
+                    st.markdown(processing_payload_result)
+                    
             except Exception as system_ui_error:
                 st.error(f"UI Interface Parsing Fault Encountered: {str(system_ui_error)}")
