@@ -1,72 +1,64 @@
 import os
 import base64
 import json
-import hashlib # Used to generate unique signatures from incoming images
+import hashlib
 from openai import OpenAI
 
-def analyze_plant_image_with_openai(file_bytes):
+# Automatically captures your credentials from environment configs
+client = OpenAI()
+
+def analyze_plant_image_with_openai(file_bytes: bytes, model_name: str = "gpt-4o", temperature: float = 0.20) -> dict:
     """
-    Executes real live AI vision analytics on incoming raw leaf byte streams 
-    using OpenAI's official model execution endpoints.
+    Processes raw visual payloads, generates a unique signature tracking code,
+    and requests live diagnostic completions from the specified neural model matrix.
     """
-    # 1. Initialize client using environment variable API key
-    # Make sure you have your OPENAI_API_KEY set up in your Streamlit secrets/env
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    
+    # 1. Generate unique deterministic ID directly from image data to resolve hardcoded caching
+    sha256_hash = hashlib.sha256(file_bytes).hexdigest()
+    target_system_id = f"PLNT-HEX-{sha256_hash[:12].upper()}"
+
+    # 2. Convert raw image binaries into base64 visual vectors
+    base64_image = base64.b64encode(file_bytes).decode('utf-8')
+
+    # 3. Establish clear prompt guardrails requesting a dictionary output
+    system_prompt = (
+        "You are an expert plant pathologist AI system. Diagnose the plant provided in the image. "
+        "You must return your analysis strictly as a valid JSON object containing exactly two keys:\n"
+        "1. 'confidence': A string representing your specific identification certainty (e.g., '94%').\n"
+        "2. 'treatment_plan': A detailed markdown document outlining identified symptoms and immediate curative actions."
+    )
+
     try:
-        # 2. Convert raw image bytes to base64 encoding string for OpenAI Vision API
-        base64_image = base64.b64encode(file_bytes).decode('utf-8')
-        
-        # 3. Create a unique SHA-256 digital signature from the raw image bytes
-        # This breaks OpenAI prompt caching and forces a fresh classification for each image
-        hasher = hashlib.sha256()
-        hasher.update(file_bytes)
-        unique_image_hash = hasher.hexdigest()
-        
-        # 4. Request absolute live structural JSON inference path from OpenAI core
+        # 4. Dispatch live vision token payloads dynamically using your exact frontend adjustments
         response = client.chat.completions.create(
-            model="gpt-4o",
-            response_format={"type": "json_object"},
+            model=model_name, # 👈 Linked to frontend selection
+            response_format={"type": "json_object"}, # Guarantees parseable outputs
             messages=[
+                {"role": "system", "content": system_prompt},
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text", 
-                            "text": (
-                                f"Image Transaction Reference ID: {unique_image_hash}\n"
-                                "Analyze this botanical plant or leaf image carefully. "
-                                "Identify the exact plant species, its health issue, and create a curation plan. "
-                                "Do not reuse previous states; evaluate this specific payload independently.\n\n"
-                                "Return a valid JSON object matching this exact key structure:\n"
-                                "{\n"
-                                ' "target_system_id": "Scientific Genus Species (Common Name) - Pathology State Name",\n'
-                                ' "core_target_confidence": "94%",\n'
-                                ' "treatment_plan": "### 🩺 Live Botanical Analysis Report\\n**Observed Symptoms:** Description here...\\n\\n### 📋 Curative Playbook Protocol\\n1. **Step One:** Action...\\n2. **Step Two:** Action..."\n'
-                                "}"
-                            )
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}"
-                            }
-                        }
+                        {"type": "text", "text": "Execute rigorous pathogenetic classification diagnostics on this image matrix."},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
                     ]
                 }
             ],
-            temperature=0.2
+            temperature=temperature # 👈 Linked to frontend slider choice
         )
-        
-        # 5. Parse output string back into a structural python dictionary matrix
-        # Note the [0] index fix to safely access the first choice option response
-        result_json_string = response.choices[0].message.content
-        return json.loads(result_json_string)
+
+        # 5. Extract structured json results using modern object dot-notation parameters
+        raw_json_output = response.choices[0].message.content
+        parsed_result = json.loads(raw_json_output)
+
+        return {
+            "target_system_id": target_system_id,
+            "core_target_confidence": parsed_result.get("confidence", "Unknown %"),
+            "treatment_plan": parsed_result.get("treatment_plan", "No structural mitigation strategy parsed.")
+        }
 
     except Exception as api_execution_fault:
-        # Fallback error mapping container if network drops or keys expire
+        # Secure boundary failover fallback matrix tracking container
         return {
-            "target_system_id": "System Analysis Interface Operational Fault",
-            "core_target_confidence": "0%",
-            "treatment_plan": f"### ❌ Neural Network Connection Interrupted\nAn error occurred while connecting to OpenAI core: {str(api_execution_fault)}"
+            "target_system_id": target_system_id,
+            "core_target_confidence": "0% (Pipeline Failure)",
+            "treatment_plan": f"### ⚠️ Vision Recognition Pipeline Failure\nAn anomaly occurred inside the backend engine pipeline: `{str(api_execution_fault)}`"
         }
