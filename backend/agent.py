@@ -48,3 +48,7 @@ def analyze_plant_image(image_bytes: bytes) -> dict:
             "core_target_confidence": "0%",
             "treatment_plan": f"Vision analysis fault: {str(e)}"
         }
+        
+analyze_plant_image_with_openai = analyze_plant_image
+analyze_plant_image_with_gemini = analyze_plant_image
+
