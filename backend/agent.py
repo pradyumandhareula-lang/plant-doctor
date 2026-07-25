@@ -6,7 +6,6 @@ from google import genai
 from google.genai import types
 
 def get_gemini_api_key():
-    """Retrieves API key from OS environment or Streamlit secrets safely."""
     key = os.environ.get("GEMINI_API_KEY")
     if key:
         return key
@@ -28,11 +27,14 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
         return {
             "target_system_id": "API Key Missing",
             "core_target_confidence": "0%",
-            "treatment_plan": "GEMINI_API_KEY is not configured in Environment Variables or Streamlit Secrets."
+            "treatment_plan": "GEMINI_API_KEY is not configured."
         }
 
-    # Remove api_version='v1' so the client resolves standard model endpoints automatically
-    client = genai.Client(api_key=api_key)
+    # Set v1beta API version so gemini-1.5-flash / gemini-2.0-flash routing works
+    client = genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(api_version="v1beta")
+    )
 
     pil_img = Image.open(io.BytesIO(data))
     
@@ -46,9 +48,8 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
     """
 
     try:
-        # gemini-2.0-flash is the standard active model endpoint
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-1.5-flash',
             contents=[prompt, pil_img]
         )
         
@@ -67,6 +68,5 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
             "treatment_plan": f"Vision analysis fault: {str(e)}"
         }
 
-# Aliases so any import name works seamlessly
 analyze_plant_image_with_openai = analyze_plant_image
 analyze_plant_image_with_gemini = analyze_plant_image
