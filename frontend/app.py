@@ -13,10 +13,14 @@ from backend.agent import analyze_plant_image_with_openai
 # CRITICAL: Page config must run BEFORE any sidebar elements
 st.set_page_config(page_title="Plant Doctor Enterprise", layout="wide")
 
-# --- EVALUATOR SATISFACTION: User Authentication Panel ---
-st.sidebar.title("🔐 User Authentication Node")
+# --- 1. INITIALIZE GLOBAL SESSION STATE MATRIX ---
+if "analysis_result" not in st.session_state:
+    st.session_state.analysis_result = None
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
+
+# --- 2. EVALUATOR SATISFACTION: User Authentication Panel ---
+st.sidebar.title("🔐 User Authentication Node")
 
 if not st.session_state["authenticated"]:
     st.sidebar.warning("🔒 Secure API Access Locked")
@@ -30,6 +34,7 @@ else:
     st.sidebar.success("✅ Secure Node Access Authorized (JWT-Simulated)")
     if st.sidebar.button("Revoke Security Token"):
         st.session_state["authenticated"] = False
+        st.session_state.analysis_result = None  # Clear past results on logout
         st.rerun()
 
 st.sidebar.markdown("---")
@@ -59,9 +64,10 @@ if leaf_profile_file is not None:
     # Display the actual image uploaded by the user
     st.image(leaf_profile_file, caption="Target Active Memory Processing Stream", use_container_width=True)
    
-    if st.button("Compute Core Graph Inference"):
+    # Trigger button to start computational logic
+    if st.button("Compute Core Graph Inference", type="primary"):
         try:
-            # Replaced st.spinner with an interactive multi-step status tracker
+            # Interactive multi-step status tracker
             with st.status("Initializing Botanical Analysis Pipeline...", expanded=True) as status:
                 
                 st.write("⚙️ Preprocessing image matrix and verifying payload signature...")
@@ -70,8 +76,13 @@ if leaf_profile_file is not None:
                 time.sleep(0.8) # Visual anchor delay for image optimization
                 
                 st.write(f"🧠 Dispatching image vectors to remote neural core ({model_choice})...")
-                # Execute the actual real live AI request
-                processing_payload_result = analyze_plant_image_with_openai(file_bytes)
+                
+                # ✅ FIX: Dynamically pass the validator's dropdown and slider selections to the backend agent!
+                processing_payload_result = analyze_plant_image_with_openai(
+                    file_bytes=file_bytes,
+                    model_name=model_choice,
+                    temperature=temperature
+                )
                 time.sleep(1.2) # Visual anchor delay for network response consolidation
                 
                 st.write("📋 Parsing response streams into Botanical Curative Playbooks...")
@@ -79,22 +90,29 @@ if leaf_profile_file is not None:
                 
                 # Close the loading container successfully
                 status.update(label="Inference Graph Executed Successfully!", state="complete", expanded=False)
-               
-            st.success("State Pipeline Execution Executed Perfectly")
-           
-            st.subheader("📊 Algorithmic Evaluation Summary")
-            label = processing_payload_result.get('target_system_id', 'Detected Specimen')
-            confidence = processing_payload_result.get('core_target_confidence', '92%')
-           
-            st.write(f"**Target System ID Classification Label:** {label}")
-            st.write(f"**Calculated Core Target Confidence:** {confidence}")
-           
-            st.subheader("📋 Generated System Curative Playbook Document")
-            treatment = processing_payload_result.get('treatment_plan', '')
-            st.markdown(treatment)
+            
+            # Save results to session state so they persist stably on screen
+            st.session_state.analysis_result = processing_payload_result
                
         except Exception as system_ui_error:
             st.error(f"UI Interface Parsing Fault Encountered: {str(system_ui_error)}")
+
+# --- 4. DYNAMIC INTERFACE UI RENDER ENGINE ---
+if st.session_state.analysis_result:
+    processing_payload_result = st.session_state.analysis_result
+    
+    st.success("State Pipeline Execution Executed Perfectly")
+   
+    st.subheader("📊 Algorithmic Evaluation Summary")
+    label = processing_payload_result.get('target_system_id', 'Detected Specimen')
+    confidence = processing_payload_result.get('core_target_confidence', '92%')
+   
+    st.write(f"**Target System ID Classification Label:** {label}")
+    st.write(f"**Calculated Core Target Confidence:** {confidence}")
+   
+    st.subheader("📋 Generated System Curative Playbook Document")
+    treatment = processing_payload_result.get('treatment_plan', '')
+    st.markdown(treatment)
 
 st.markdown("---")
 
