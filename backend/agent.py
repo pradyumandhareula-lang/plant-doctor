@@ -4,16 +4,16 @@ import io
 from PIL import Image
 
 def get_gemini_api_key():
-    key = os.environ.get("GEMINI_API_KEY")
-    if key:
-        return key
+    # 1. First try Streamlit secrets directly
     try:
         import streamlit as st
-        if "GEMINI_API_KEY" in st.secrets:
+        if "GEMINI_API_KEY" in st.secrets and st.secrets["GEMINI_API_KEY"]:
             return st.secrets["GEMINI_API_KEY"]
     except Exception:
         pass
-    return None
+    
+    # 2. Fallback to OS environment
+    return os.environ.get("GEMINI_API_KEY")
 
 def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *args, **kwargs) -> dict:
     data = image_bytes or file_bytes
@@ -22,10 +22,11 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
 
     api_key = get_gemini_api_key()
 
-    # Attempt live API call if key exists
     if api_key:
         try:
             from google import genai
+            
+            # Clean SDK client init
             client = genai.Client(api_key=api_key)
             pil_img = Image.open(io.BytesIO(data))
             
@@ -38,22 +39,27 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
             }
             """
 
-            response = client.models.generate_content(
-                model='gemini-2.0-flash',
-                contents=[prompt, pil_img]
-            )
-            raw_text = response.text.strip()
-            if raw_text.startswith("```json"):
-                raw_text = raw_text[7:]
-            if raw_text.endswith("```"):
-                raw_text = raw_text[:-3]
-            return json.loads(raw_text.strip())
+            # Iterate active model candidates
+            for model_name in ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']:
+                try:
+                    response = client.models.generate_content(
+                        model=model_name,
+                        contents=[prompt, pil_img]
+                    )
+                    raw_text = response.text.strip()
+                    if raw_text.startswith("```json"):
+                        raw_text = raw_text[7:]
+                    if raw_text.endswith("```"):
+                        raw_text = raw_text[:-3]
+                    return json.loads(raw_text.strip())
+                except Exception as model_err:
+                    print(f"Model {model_name} failed: {model_err}")
+                    continue
 
-        except Exception:
-            # Catches 429 quota exhaustion or any API error gracefully
-            pass
+        except Exception as e:
+            print(f"SDK Execution Error: {e}")
 
-    # Safe structured response if rate-limited or unconfigured
+    # Fallback response
     return {
         "target_system_id": "Solanum lycopersicum (Tomato Leaf Spot)",
         "core_target_confidence": "94%",
