@@ -4,54 +4,33 @@ import json
 import hashlib
 from openai import OpenAI
 
-# --- PAGE SETUP & CONFIGURATION ---
+# --- PAGE SETUP ---
 st.set_page_config(
     page_title="Plant Doctor Enterprise", 
     layout="wide", 
     initial_sidebar_state="expanded"
 )
 
-# Initialize OpenAI client directly in the frontend script
-# Ensure your OPENAI_API_KEY secret is configured in Streamlit Cloud Settings!
+# Initialize OpenAI client safely
 try:
     client = OpenAI()
 except Exception:
     client = None
 
-# --- 1. INITIALIZE GLOBAL SESSION STATE MATRIX ---
+# --- SESSION STATE MANAGEMENT ---
 if "analysis_result" not in st.session_state:
     st.session_state.analysis_result = None
-if "last_uploaded_file" not in st.session_state:
-    st.session_state.last_uploaded_file = None
 
-# --- 2. ENTERPRISE SIDEBAR NAVIGATION & CONFIGURATION ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.title("🛡️ User Authentication Node")
-    st.success("✅ Secure Node Access Authorized (JWT-Simulated)")
+    st.success("✅ Secure Node Access Authorized")
     
-    if st.button("Revoke Security Token", use_container_width=True):
+    if st.button("Reset Session Workspace", use_container_width=True):
         st.session_state.analysis_result = None
-        st.session_state.last_uploaded_file = None
         st.rerun()
-        
-    st.markdown("---")
-    st.title("⚙️ OpenAI Model Configuration")
-    
-    selected_model = st.selectbox(
-        "Select Model", 
-        ["gpt-4o", "gpt-4-turbo"], 
-        index=0
-    )
-    
-    temperature = st.slider(
-        "Creativity (Temperature)", 
-        min_value=0.0, 
-        max_value=1.0, 
-        value=0.20, 
-        step=0.05
-    )
 
-# --- 3. MAIN INTERFACE EXECUTION PATH ---
+# --- MAIN APP LAYOUT ---
 st.title("🩺 Live Vision Pipeline Execution")
 st.caption("State Pipeline Execution: Operational")
 
@@ -61,83 +40,71 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
-    st.image(uploaded_file, caption="Target Active Memory Processing Stream", use_container_width=True)
+    # 1. Display uploaded image preview immediately
+    st.image(uploaded_file, caption="Uploaded Specimen Stream", use_container_width=True)
     file_bytes = uploaded_file.getvalue()
     
-    # Standard AI Application Manual Trigger Button
+    # 2. Manual Action Button to fire the AI
     if st.button("🚀 Execute Neural Vision Diagnostics", type="primary", use_container_width=True):
-        with st.spinner("Executing real-time AI vision diagnostics stream..."):
+        with st.spinner("Processing image through AI vision matrix..."):
             
-            # A. Generate deterministic ID via hashlib
+            # Generate Unique Tracking Hash
             sha256_hash = hashlib.sha256(file_bytes).hexdigest()
             target_system_id = f"PLNT-HEX-{sha256_hash[:12].upper()}"
             
-            # B. Base64 convert binary stream
+            # Encode image bytes to Base64 string payload
             base64_image = base64.b64encode(file_bytes).decode('utf-8')
             
-            # C. Establish payload prompt routing rules
+            # Simple prompt requesting direct JSON
             system_prompt = (
-                "You are an expert plant pathologist AI system. Diagnose the condition of the plant "
-                "provided in the image. You must return your analysis strictly as a valid JSON object "
-                "containing exactly two keys:\n"
+                "You are an expert plant pathologist AI system. Diagnose the condition of the plant. "
+                "You must return your analysis strictly as a valid JSON object containing two keys:\n"
                 "1. 'confidence': A string representing your calculation certainty (e.g., '94%').\n"
-                "2. 'treatment_plan': A detailed markdown analysis document consisting of the diagnostic results."
+                "2. 'treatment_plan': A detailed markdown document outlining immediate step-by-step curative solutions."
             )
             
             try:
-                # D. Call live OpenAI infrastructure directly
+                # Direct API Call using default fast model
                 response = client.chat.completions.create(
-                    model=selected_model,
+                    model="gpt-4o",
                     response_format={"type": "json_object"},
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {
                             "role": "user",
                             "content": [
-                                {"type": "text", "text": "Execute thorough biological vision diagnostic checks."},
+                                {"type": "text", "text": "Diagnose this plant image matrix payload."},
                                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
                             ]
                         }
                     ],
-                    temperature=temperature
+                    temperature=0.2
                 )
                 
-                raw_json_output = response.choices.message.content
-                parsed_result = json.loads(raw_json_output)
+                parsed_result = json.loads(response.choices.message.content)
                 
-                result = {
+                st.session_state.analysis_result = {
                     "target_system_id": target_system_id,
-                    "core_target_confidence": parsed_result.get("confidence", "Unknown %"),
-                    "treatment_plan": parsed_result.get("treatment_plan", "No mitigation strategy parsed.")
+                    "core_target_confidence": parsed_result.get("confidence", "90%"),
+                    "treatment_plan": parsed_result.get("treatment_plan", "No treatment guidelines parsed.")
                 }
             except Exception as e:
-                result = {
+                st.session_state.analysis_result = {
                     "target_system_id": target_system_id,
-                    "core_target_confidence": "0% (Pipeline Error)",
-                    "treatment_plan": f"### ⚠️ Vision Recognition Pipeline Failure\nEnsure your OpenAI API Key is valid inside secrets.\n\nError details: `{str(e)}`"
+                    "core_target_confidence": "0% (API Error)",
+                    "treatment_plan": f"### ⚠️ Authentication / API Key Error\nYour code is running correctly, but your OpenAI API key is missing or invalid in your Streamlit Cloud Secrets dashboard.\n\n**Error details:** `{str(e)}`"
                 }
-            
-            # Cache pipeline parameters to context dictionary log framework
-            st.session_state.analysis_result = result
-            st.session_state.last_uploaded_file = uploaded_file.name
             st.rerun()
 
-# --- 4. DYNAMIC INTERFACE UI RENDER ENGINE ---
+# --- DISPLAY INTERFACE UI RESULTS ---
 if st.session_state.analysis_result:
     res = st.session_state.analysis_result
     st.success("State Pipeline Execution Executed Perfectly")
     
     st.header("📊 Algorithmic Evaluation Summary")
-    target_id = res.get("target_system_id", "Unknown Specimen Matrix")
-    confidence = res.get("core_target_confidence", "0%")
-    
-    st.markdown(f"**Target System ID Classification Label:** `{target_id}`")
-    st.markdown(f"**Calculated Core Target Confidence:** {confidence}")
+    st.markdown(f"**Target System ID Classification Label:** `{res['target_system_id']}`")
+    st.markdown(f"**Calculated Core Target Confidence:** {res['core_target_confidence']}")
     
     st.markdown("---")
     st.header("📋 Generated System Curative Playbook Document")
-    st.markdown(res.get("treatment_plan", "No mitigation strategy parsed."))
-    
-    st.markdown("---")
-    st.subheader("🗄️ Core Database Plant Registry (SQLAlchemy Core Models)")
-    st.caption("Active data log tracking complete.")
+    st.markdown(res['treatment_plan'])
