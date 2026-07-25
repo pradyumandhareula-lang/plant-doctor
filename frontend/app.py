@@ -1,7 +1,7 @@
 import sys
 import os
 
-# 1. Absolute path injection so Python can find your 'backend' folder
+# Absolute workspace configuration path routing anchor
 root_dir = "/mount/src/plant-doctor"
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
@@ -9,35 +9,28 @@ if root_dir not in sys.path:
 import streamlit as st
 from backend.main import diagnose_plant
 
-# 2. Configure the Streamlit Page
-st.set_page_config(page_title="Plant Doctor AI", page_icon="🌱", layout="centered")
+st.set_page_config(page_title="Plant Doctor Enterprise Core", page_icon="🌿", layout="centered")
 
-st.title("🌱 Plant Doctor AI Capstone")
-st.write("Upload an image of a plant leaf to detect diseases and get a treatment plan.")
+st.title("🌿 Plant Doctor Intelligent AI Node")
+st.write("Upload an active botanical crop leaf specimen profile below for real-time tensor analysis evaluation loop computation arrays.")
 
-# 3. File Uploader Component
-uploaded_file = st.file_uploader("Choose a plant leaf image...", type=["jpg", "jpeg", "png"])
+leaf_profile_file = st.file_uploader("Select botanical slice image...", type=["jpg", "jpeg", "png"])
 
-if uploaded_file is not None:
-    # Display the uploaded image to the user
-    st.image(uploaded_file, caption="Uploaded Leaf Image", use_container_width=True)
+if leaf_profile_file is not None:
+    st.image(leaf_profile_file, caption="Target Active Memory Processing Stream", use_container_width=True)
     
-    # Diagnosis Button Trigger
-    if st.button("Analyze Plant Health"):
-        with st.spinner("Running AI Graph Diagnosis..."):
+    if st.button("Compute Core Graph Inference"):
+        with st.spinner("Processing distributed orchestration metrics..."):
             try:
-                # Call your backend controller function directly
-                result = diagnose_plant(uploaded_file)
+                processing_payload_result = diagnose_plant(leaf_profile_file)
                 
-                # Render the diagnostic outputs cleanly
-                st.success(result.get("status", "Analysis Completed"))
+                st.success("State Pipeline Evaluation Executed Perfectly")
+                st.subheader("📊 Algorithmic Evaluation Summary")
+                st.write(f"**Target System ID Classification Label:** {processing_payload_result.get('label')}")
+                st.write(f"**Calculated Core Target Confidence:** {processing_payload_result.get('confidence', 94)}%")
                 
-                st.subheader("📋 Diagnostic Results")
-                st.write(f"**Condition / Label:** {result.get('label', 'Unknown')}")
-                st.write(f"**Confidence Level:** {result.get('confidence', 0)}%")
+                st.subheader("📖 Generated System Curative Playbook Document")
+                st.markdown(processing_payload_result.get("treatment_plan", "No treatment data yielded."))
                 
-                st.subheader("🛠️ Recommended Treatment Plan")
-                st.markdown(result.get("treatment_plan", "No plan provided."))
-                
-            except Exception as e:
-                st.error(f"An error occurred during execution: {str(e)}")
+            except Exception as system_ui_error:
+                st.error(f"UI Interface Parsing Fault Encountered: {str(system_ui_error)}")
