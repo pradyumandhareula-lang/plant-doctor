@@ -31,10 +31,8 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
             "treatment_plan": "GEMINI_API_KEY is not configured in Environment Variables or Streamlit Secrets."
         }
 
-    client = genai.Client(
-        api_key=api_key,
-        http_options=types.HttpOptions(api_version="v1")
-    )
+    # Remove api_version='v1' so the client resolves standard model endpoints automatically
+    client = genai.Client(api_key=api_key)
 
     pil_img = Image.open(io.BytesIO(data))
     
@@ -48,8 +46,9 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
     """
 
     try:
+        # gemini-2.0-flash is the standard active model endpoint
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.0-flash',
             contents=[prompt, pil_img]
         )
         
