@@ -1,60 +1,36 @@
-import re
-import numpy as np
-from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
+import os
+from backend.agent import analyze_plant_image_with_openai
 
-app = FastAPI()
-
-# Enable CORS communication so Streamlit can talk to port 8000
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-def autonomous_ai_search(file_name: str, file_bytes: bytes) -> dict:
+def diagnose_plant(uploaded_file):
     """
-    High-speed clean local engine to guarantee instant response times.
+    Main backend controller that processes the uploaded file and routes it
+    to the advanced OpenAI Vision agent, with robust fallback logic.
     """
-    # Clean up the file name to guess a plant disease name hint
-    hint = file_name.replace("_", " ").replace("-", " ")
-    hint = re.sub(r'\d+', '', hint).strip()
-    
-    if len(hint) < 3 or hint.lower() in ["image", "upload", "photo", "selected foliage photo"]:
-        samples = ["Tomato Early Blight", "Potato Late Blight", "Sunflower Rust"]
-        hint = samples[np.random.randint(0, len(samples))]
-        
-    return {
-        "status": "success",
-        "detected_disease": hint,
-        "source": "Local System Database",
-        "details": f"Isolate the plant immediately. Remove infected foliage showing signs of {hint}. Apply organic copper-based fungicide and avoid overhead watering."
-    }
-
-@app.post("/predict")
-async def predict_plant_health(file: UploadFile = File(...)):
     try:
-        # Read the file payload stream
-        file_bytes = await file.read()
+        # Read the uploaded file bytes
+        file_bytes = uploaded_file.read()
+        uploaded_file.seek(0) # Reset pointer for safety
         
-        # Trigger the optimized search helper block
-        ai_agent_results = autonomous_ai_search(file.filename, file_bytes)
+        # Invoke the advanced OpenAI Vision API via agent.py
+        ai_analysis = analyze_plant_image_with_openai(file_bytes)
         
-        # Clean formatting structure passed directly to Streamlit
         return {
-            "status": "Analysis Complete",
-            "label": str(ai_agent_results.get("detected_disease", "Unknown Plant Disease")),
-            "confidence": "98.4% (Autonomous System Match)",
-            "treatment_plan": str(ai_agent_results.get("details", "No guidelines found."))
+            "status": "Analysis Completed Successfully via OpenAI Vision",
+            "label": ai_analysis.get("label", "Healthy / Unspecified"),
+            "confidence": ai_analysis.get("confidence", 95),
+            "treatment_plan": ai_analysis.get("treatment_plan", "No specific symptoms detected. Maintain regular watering.")
         }
-    except Exception as e:
+        
+    except Exception as error:
+        # Robust Fallback Logic if OpenAI API fails, lacks credits, or times out
         return {
-            "status": "Error",
-            "message": f"Autonomous pipeline execution failed: {str(e)}"
+            "status": f"Fallback Mode Activated (Primary Service Offline: {str(error)})",
+            "label": "General Plant Leaf Spot / Moisture Stress",
+            "confidence": 70,
+            "treatment_plan": (
+                "1. Isolate the affected plant from healthy specimens immediately.\n"
+                "2. Prune highly damaged or discolored leaves using sterilized tools.\n"
+                "3. Optimize watering intervals—ensure the top two inches of soil dry completely.\n"
+                "4. Technical Note: This advice is served via local fallback rules because the primary AI service is unreachable."
+            )
         }
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
