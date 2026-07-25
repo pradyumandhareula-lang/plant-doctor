@@ -2,7 +2,9 @@ import base64
 import hashlib
 import os
 import json  
-import streamlit as st # <-- Fixed the typo here
+import streamlit as st # Fixed typo
+from google import genai # Added missing SDK import
+from google.genai import types # Added missing types import
 
 # Initialize the modern Gemini Client using Streamlit Secrets configuration
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
