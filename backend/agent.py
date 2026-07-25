@@ -42,7 +42,7 @@ def analyze_plant_image_with_openai(*args, **kwargs):
     try:
         # 5. Dispatch live vision token payloads dynamically using Gemini 1.5 Flash client setup
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='models/gemini-1.5-flash',
             contents=[
                 "Execute rigorous pathological evaluation on this image target.",
                 image_part
