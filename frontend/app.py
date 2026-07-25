@@ -18,7 +18,6 @@ if "last_uploaded_file" not in st.session_state:
 with st.sidebar:
     st.title("🛡️ User Authentication Node")
     
-    # Visual simulation container for security layer matching your screen layout
     st.success("✅ Secure Node Access Authorized (JWT-Simulated)")
     if st.button("Revoke Security Token", use_container_width=True):
         st.session_state.analysis_result = None
@@ -28,13 +27,13 @@ with st.sidebar:
     st.markdown("---")
     st.title("⚙️ OpenAI Model Configuration")
     
+    # Values passed directly to backend to alter visual evaluation variations
     selected_model = st.selectbox(
         "Select Model", 
-        ["gpt-4o", "gpt-4-vision-preview"], 
+        ["gpt-4o", "gpt-4-turbo"], 
         index=0
     )
     
-    # Capture configuration slider value matching your screen components
     temperature = st.slider(
         "Creativity (Temperature)", 
         min_value=0.0, 
@@ -47,26 +46,26 @@ with st.sidebar:
 st.title("🩺 Live Vision Pipeline Execution")
 st.caption("State Pipeline Execution: Operational")
 
-# Drag-and-drop landing platform for binary image vectors
 uploaded_file = st.file_uploader(
     "Target Active Memory Processing Stream", 
     type=["jpg", "jpeg", "png"]
 )
 
 if uploaded_file is not None:
-    # Render the input visual reference stream to the interface layout
     st.image(uploaded_file, caption="Target Active Memory Processing Stream", use_container_width=True)
-    
-    # Read image content to extract absolute byte data array
     file_bytes = uploaded_file.getvalue()
     
-    # CRITICAL BUGFIX: Detect if a brand new file signature has bypassed cache boundaries
-    if st.session_state.last_uploaded_file != uploaded_file.name:
-        with st.spinner("Executing real live AI vision analytics..."):
-            # Call your backend script pipeline containing your unique hashlib framework
-            result = analyze_plant_image_with_openai(file_bytes)
+    # FIX: Explicit trigger button to restore standard "AI App" workflow behavior
+    if st.button("🚀 Execute Neural Vision Diagnostics", type="primary", use_container_width=True):
+        with st.spinner("Executing real-time AI vision diagnostics stream..."):
+            # Passes real bytes, dynamic model choice, and custom temperature settings
+            result = analyze_plant_image_with_openai(
+                file_bytes=file_bytes, 
+                model_name=selected_model, 
+                temperature=temperature
+            )
             
-            # Lock the new calculation values down securely into global workspace memory
+            # Cache the distinct computation values into workspace memory
             st.session_state.analysis_result = result
             st.session_state.last_uploaded_file = uploaded_file.name
             st.rerun()
@@ -76,13 +75,13 @@ if st.session_state.analysis_result:
     res = st.session_state.analysis_result
     st.success("State Pipeline Execution Executed Perfectly")
     
-    # Panel A: Metrics Metrics Calculation Matrix Display
+    # Panel A: Metrics Calculation Matrix Display
     st.header("📊 Algorithmic Evaluation Summary")
     
     target_id = res.get("target_system_id", "Unknown Specimen Matrix")
     confidence = res.get("core_target_confidence", "0%")
     
-    st.markdown(f"**Target System ID Classification Label:** {target_id}")
+    st.markdown(f"**Target System ID Classification Label:** `{target_id}`")
     st.markdown(f"**Calculated Core Target Confidence:** {confidence}")
     
     st.markdown("---")
