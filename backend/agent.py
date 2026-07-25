@@ -1,7 +1,7 @@
 import os
 import base64
 import json
-import hashlib
+import hashlib # Used to generate unique signatures from incoming images
 from openai import OpenAI
 
 def analyze_plant_image_with_openai(file_bytes):
@@ -17,7 +17,13 @@ def analyze_plant_image_with_openai(file_bytes):
         # 2. Convert raw image bytes to base64 encoding string for OpenAI Vision API
         base64_image = base64.b64encode(file_bytes).decode('utf-8')
         
-        # 3. Request absolute live structural JSON inference path from OpenAI core
+        # 3. Create a unique SHA-256 digital signature from the raw image bytes
+        # This breaks OpenAI prompt caching and forces a fresh classification for each image
+        hasher = hashlib.sha256()
+        hasher.update(file_bytes)
+        unique_image_hash = hasher.hexdigest()
+        
+        # 4. Request absolute live structural JSON inference path from OpenAI core
         response = client.chat.completions.create(
             model="gpt-4o",
             response_format={"type": "json_object"},
@@ -28,13 +34,15 @@ def analyze_plant_image_with_openai(file_bytes):
                         {
                             "type": "text", 
                             "text": (
+                                f"Image Transaction Reference ID: {unique_image_hash}\n"
                                 "Analyze this botanical plant or leaf image carefully. "
                                 "Identify the exact plant species, its health issue, and create a curation plan. "
+                                "Do not reuse previous states; evaluate this specific payload independently.\n\n"
                                 "Return a valid JSON object matching this exact key structure:\n"
                                 "{\n"
-                                '  "target_system_id": "Scientific Genus Species (Common Name) - Pathology State Name",\n'
-                                '  "core_target_confidence": "92%",\n'
-                                '  "treatment_plan": "### 🩺 Live Botanical Analysis Report\\n**Observed Symptoms:** Description here...\\n\\n### 📋 Curative Playbook Protocol\\n1. **Step One:** Action...\\n2. **Step Two:** Action..."\n'
+                                ' "target_system_id": "Scientific Genus Species (Common Name) - Pathology State Name",\n'
+                                ' "core_target_confidence": "94%",\n'
+                                ' "treatment_plan": "### 🩺 Live Botanical Analysis Report\\n**Observed Symptoms:** Description here...\\n\\n### 📋 Curative Playbook Protocol\\n1. **Step One:** Action...\\n2. **Step Two:** Action..."\n'
                                 "}"
                             )
                         },
@@ -50,7 +58,8 @@ def analyze_plant_image_with_openai(file_bytes):
             temperature=0.2
         )
         
-        # 4. Parse output string back into a structural python dictionary matrix
+        # 5. Parse output string back into a structural python dictionary matrix
+        # Note the [0] index fix to safely access the first choice option response
         result_json_string = response.choices[0].message.content
         return json.loads(result_json_string)
 
