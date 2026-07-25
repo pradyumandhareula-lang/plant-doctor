@@ -6,14 +6,20 @@ import streamlit as st # Fixed typo
 from google import genai # Added missing SDK import
 from google.genai import types # Added missing types import
 
-# Initialize the modern Gemini Client using Streamlit Secrets configuration
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 def analyze_plant_image_with_openai(*args, **kwargs):
     """
     Processes raw visual payloads, generates a unique signature tracking code,
     and requests live diagnostic completions from the modern Gemini core.
     """
+    api_key = kwargs.get('api_key') or os.environ.get("GEMINI_API_KEY")
+    
+    if not api_key:
+        raise ValueError("API Key is missing. Please provide a valid Gemini API Key.")
+
+    # 2. Initialize the client safely INSIDE the function per request
+    client = genai.Client(api_key=API_KEY)
+                          
     # 1. Extract image bytes dynamically from whichever keyword argument the UI sends
     img_bytes = kwargs.get('img_bytes') or kwargs.get('file_bytes')
     if not img_bytes and args:
