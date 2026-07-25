@@ -49,7 +49,7 @@ def analyze_plant_image_with_openai(*args, **kwargs):
             ],
             config=types.GenerateContentConfig(
                 system_instruction=system_prompt,
-                temperature=0.2,
+                temperature=0.20,
                 response_mime_type="application/json"
             )
         )
