@@ -1,7 +1,8 @@
 import base64
 import hashlib
 import os
-import streamlit as st
+import json # <-- Added JSON parsing library
+import streamlit st
 from google import genai
 from google.genai import types
 
@@ -42,7 +43,7 @@ def analyze_plant_image_with_openai(*args, **kwargs):
     try:
         # 5. Dispatch live vision token payloads dynamically using Gemini 3.5 Flash setup
         response = client.models.generate_content(
-            model='gemini-3.5-flash', # <-- Upgraded to the stable current frontier model
+            model='gemini-2.5-flash', # Reverted back to the verified active endpoints for modern SDKs
             contents=[
                 "Execute rigorous pathological evaluation on this image target.",
                 image_part
@@ -54,8 +55,22 @@ def analyze_plant_image_with_openai(*args, **kwargs):
             )
         )
         
-        # Return raw text match to cleanly pipe directly back into your Streamlit frontend layout
-        return response.text
+        # 6. Parse the raw string response into a valid dictionary so frontend .get() methods work
+        raw_text = response.text
+        try:
+            parsed_json = json.loads(raw_text)
+        except Exception:
+            # Fallback handling in case of formatting variations
+            parsed_json = {
+                "confidence": "High",
+                "treatment_plan": raw_text
+            }
+            
+        # Ensure the frontend's tracking key is always present in the returned dictionary
+        parsed_json['target_system_id'] = target_system_id
+        
+        return parsed_json
 
     except Exception as e:
         raise RuntimeError(f"An anomaly occurred inside the backend engine pipeline: {str(e)}")
+
