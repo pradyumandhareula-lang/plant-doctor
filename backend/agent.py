@@ -7,18 +7,18 @@ from openai import OpenAI
 # Automatically captures your credentials from environment configs
 client = OpenAI()
 
-def analyze_plant_image_with_openai(file_bytes: bytes, model_name: str = "gpt-4o", temperature: float = 0.20) -> dict:
+def analyze_plant_image_with_openai(img_bytes: bytes, model_name: str = "gpt-4o"):
     """
     Processes raw visual payloads, generates a unique signature tracking code,
     and requests live diagnostic completions from the specified neural model matrix.
     """
-    # 1. Generate unique deterministic ID directly from image data to resolve hardcoded caching
-    sha256_hash = hashlib.sha256(file_bytes).hexdigest()
+    # 1. Generate unique deterministic ID directly from image data to resolve history logs
+    sha256_hash = hashlib.sha256(img_bytes).hexdigest()
     target_system_id = f"PLNT-HEX-{sha256_hash[:12].upper()}"
 
     # 2. Convert raw image binaries into base64 visual vectors
-    base64_image = base64.b64encode(file_bytes).decode('utf-8')
-
+    base64_image = base64.b64encode(img_bytes).decode('utf-8')
+    
     # 3. Establish clear prompt guardrails requesting a dictionary output
     system_prompt = (
         "You are an expert plant pathologist AI system. Diagnose the plant provided in the image. "
