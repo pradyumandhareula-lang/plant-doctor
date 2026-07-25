@@ -13,3 +13,4 @@ openai
 langchain-core
 langchain-openai
 langgraph
+google-generativeai
