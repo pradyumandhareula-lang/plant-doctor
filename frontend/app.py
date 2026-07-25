@@ -1,5 +1,8 @@
 import streamlit as st
-from backend.agent import analyze_plant_image_with_openai
+import base64
+import json
+import hashlib
+from openai import OpenAI
 
 # --- PAGE SETUP & CONFIGURATION ---
 st.set_page_config(
@@ -7,6 +10,13 @@ st.set_page_config(
     layout="wide", 
     initial_sidebar_state="expanded"
 )
+
+# Initialize OpenAI client directly in the frontend script
+# Ensure your OPENAI_API_KEY secret is configured in Streamlit Cloud Settings!
+try:
+    client = OpenAI()
+except Exception:
+    client = None
 
 # --- 1. INITIALIZE GLOBAL SESSION STATE MATRIX ---
 if "analysis_result" not in st.session_state:
@@ -17,8 +27,8 @@ if "last_uploaded_file" not in st.session_state:
 # --- 2. ENTERPRISE SIDEBAR NAVIGATION & CONFIGURATION ---
 with st.sidebar:
     st.title("🛡️ User Authentication Node")
-    
     st.success("✅ Secure Node Access Authorized (JWT-Simulated)")
+    
     if st.button("Revoke Security Token", use_container_width=True):
         st.session_state.analysis_result = None
         st.session_state.last_uploaded_file = None
@@ -27,7 +37,6 @@ with st.sidebar:
     st.markdown("---")
     st.title("⚙️ OpenAI Model Configuration")
     
-    # Selection maps directly to backend pipeline execution parameters
     selected_model = st.selectbox(
         "Select Model", 
         ["gpt-4o", "gpt-4-turbo"], 
@@ -52,21 +61,63 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
-    # Always display uploaded preview matrix state
     st.image(uploaded_file, caption="Target Active Memory Processing Stream", use_container_width=True)
     file_bytes = uploaded_file.getvalue()
     
-    # Dedicated control trigger button to initialize neural pipeline tracking
+    # Standard AI Application Manual Trigger Button
     if st.button("🚀 Execute Neural Vision Diagnostics", type="primary", use_container_width=True):
         with st.spinner("Executing real-time AI vision diagnostics stream..."):
-            # Sends structural vectors straight to updated agent backend
-            result = analyze_plant_image_with_openai(
-                file_bytes=file_bytes, 
-                model_name=selected_model, 
-                temperature=temperature
+            
+            # A. Generate deterministic ID via hashlib
+            sha256_hash = hashlib.sha256(file_bytes).hexdigest()
+            target_system_id = f"PLNT-HEX-{sha256_hash[:12].upper()}"
+            
+            # B. Base64 convert binary stream
+            base64_image = base64.b64encode(file_bytes).decode('utf-8')
+            
+            # C. Establish payload prompt routing rules
+            system_prompt = (
+                "You are an expert plant pathologist AI system. Diagnose the condition of the plant "
+                "provided in the image. You must return your analysis strictly as a valid JSON object "
+                "containing exactly two keys:\n"
+                "1. 'confidence': A string representing your calculation certainty (e.g., '94%').\n"
+                "2. 'treatment_plan': A detailed markdown analysis document consisting of the diagnostic results."
             )
             
-            # Commit calculations into current global active tracking engine
+            try:
+                # D. Call live OpenAI infrastructure directly
+                response = client.chat.completions.create(
+                    model=selected_model,
+                    response_format={"type": "json_object"},
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "Execute thorough biological vision diagnostic checks."},
+                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                            ]
+                        }
+                    ],
+                    temperature=temperature
+                )
+                
+                raw_json_output = response.choices.message.content
+                parsed_result = json.loads(raw_json_output)
+                
+                result = {
+                    "target_system_id": target_system_id,
+                    "core_target_confidence": parsed_result.get("confidence", "Unknown %"),
+                    "treatment_plan": parsed_result.get("treatment_plan", "No mitigation strategy parsed.")
+                }
+            except Exception as e:
+                result = {
+                    "target_system_id": target_system_id,
+                    "core_target_confidence": "0% (Pipeline Error)",
+                    "treatment_plan": f"### ⚠️ Vision Recognition Pipeline Failure\nEnsure your OpenAI API Key is valid inside secrets.\n\nError details: `{str(e)}`"
+                }
+            
+            # Cache pipeline parameters to context dictionary log framework
             st.session_state.analysis_result = result
             st.session_state.last_uploaded_file = uploaded_file.name
             st.rerun()
@@ -76,9 +127,7 @@ if st.session_state.analysis_result:
     res = st.session_state.analysis_result
     st.success("State Pipeline Execution Executed Perfectly")
     
-    # Panel A: Metrics Calculation Matrix Display
     st.header("📊 Algorithmic Evaluation Summary")
-    
     target_id = res.get("target_system_id", "Unknown Specimen Matrix")
     confidence = res.get("core_target_confidence", "0%")
     
@@ -86,8 +135,6 @@ if st.session_state.analysis_result:
     st.markdown(f"**Calculated Core Target Confidence:** {confidence}")
     
     st.markdown("---")
-    
-    # Panel B: System Diagnostics and Protocols
     st.header("📋 Generated System Curative Playbook Document")
     st.markdown(res.get("treatment_plan", "No mitigation strategy parsed."))
     
