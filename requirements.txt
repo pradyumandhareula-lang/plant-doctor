@@ -1,11 +1,11 @@
+streamlit
 fastapi
 uvicorn
 python-multipart
 requests
 pydantic
---index-url https://pytorch.org
-torch
-torchvision
+torch --index-url https://pytorch.org
+torchvision --index-url https://pytorch.org
 pillow
 numpy
 duckduckgo-search
