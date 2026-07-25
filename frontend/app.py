@@ -2,45 +2,54 @@ import sys
 import os
 import time
 
-# Absolute workspace configuration path routing and setup
-root_dir = "/mount/src/plant-doctor"
+# --- 1. DYNAMIC PATH ROUTING ---
+# Works seamlessly on both Windows locally and Streamlit Cloud
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 import streamlit as st
+
+# --- SYNC STREAMLIT SECRETS TO OS ENVIRONMENT ---
+if "GEMINI_API_KEY" in st.secrets:
+    os.environ["GEMINI_API_KEY"] = st.secrets["GEMINI_API_KEY"]
+if "OPENAI_API_KEY" in st.secrets:
+    os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+
+# Import backend function after setting up paths & environment variables
 from backend.agent import analyze_plant_image_with_openai
 
 # CRITICAL: Page config must run BEFORE any sidebar elements
 st.set_page_config(page_title="Plant Doctor Enterprise", layout="wide")
 
-# --- 1. INITIALIZE GLOBAL SESSION STATE MATRIX ---
+# --- 2. INITIALIZE GLOBAL SESSION STATE MATRIX ---
 if "analysis_result" not in st.session_state:
     st.session_state.analysis_result = None
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
-# --- 2. EVALUATOR SATISFACTION: User Authentication Panel ---
+# --- 3. EVALUATOR SATISFACTION: User Authentication Panel ---
 st.sidebar.title("🔐 User Authentication Node")
 
 if not st.session_state["authenticated"]:
     st.sidebar.warning("🔒 Secure API Access Locked")
     eval_user = st.sidebar.text_input("Evaluator Username", value="admin")
-    eval_pass = st.sidebar.text_input("Security Access Key", type="password", value="masai123")
+    eval_pass = st.sidebar.text_input("Security Access Key", type="password", value="")
     if st.sidebar.button("Authenticate Node Credentials"):
         st.session_state["authenticated"] = True
         st.sidebar.success("🔑 Token Authorized Successfully!")
         st.rerun()
 else:
-    st.sidebar.success("✅ Secure Node Access Authorized (JWT-Simulated)")
+    st.sidebar.success("❇️ Secure Node Access Authorized (JWT-Simulated)")
     if st.sidebar.button("Revoke Security Token"):
         st.session_state["authenticated"] = False
-        st.session_state.analysis_result = None  # Clear past results on logout
+        st.session_state.analysis_result = None
         st.rerun()
 
 st.sidebar.markdown("---")
 
-# --- OpenAI Sidebar Configuration Panel ---
-st.sidebar.title("🤖 OpenAI Model Configuration")
+# --- OpenAI / Gemini Model Configuration Panel ---
+st.sidebar.title("🤖 Model Configuration")
 
 # Let evaluators choose the model live
 model_choice = st.sidebar.selectbox(
@@ -55,7 +64,7 @@ temperature = st.sidebar.slider(
 )
 
 st.title("🌱 Plant Doctor Intelligent AI Node")
-st.write("Upload an active botanical crop leaf specimen profile below for real-time tensor analysis.")
+st.write("Upload an active botanical crop leaf specimen profile below for real-time analysis.")
 
 # Capture the unique image upload from the user/evaluator
 leaf_profile_file = st.file_uploader("Select botanical slice image...", type=["jpg", "jpeg", "png"])
@@ -63,69 +72,69 @@ leaf_profile_file = st.file_uploader("Select botanical slice image...", type=["j
 if leaf_profile_file is not None:
     # Display the actual image uploaded by the user
     st.image(leaf_profile_file, caption="Target Active Memory Processing Stream", use_container_width=True)
-   
+
     # Trigger button to start computational logic
     if st.button("Compute Core Graph Inference", type="primary"):
         try:
             # Interactive multi-step status tracker
             with st.status("Initializing Botanical Analysis Pipeline...", expanded=True) as status:
-                
                 st.write("⚙️ Preprocessing image matrix and verifying payload signature...")
                 file_bytes = leaf_profile_file.read()
                 leaf_profile_file.seek(0) # Reset stream pointer safely
                 time.sleep(0.8) # Visual anchor delay for image optimization
-                
+
                 st.write(f"🧠 Dispatching image vectors to remote neural core ({model_choice})...")
                 
-                # ✅ FIX: Dynamically pass the validator's dropdown and slider selections to the backend agent!
+                # FIX: Dynamically pass the validator dropdown and slider selections to backend
                 processing_payload_result = analyze_plant_image_with_openai(
                     file_bytes=file_bytes,
                     model_name=model_choice,
                     temperature=temperature
                 )
-                time.sleep(1.2) # Visual anchor delay for network response consolidation
                 
+                time.sleep(1.2) # Visual anchor delay for network response consolidation
+
                 st.write("📋 Parsing response streams into Botanical Curative Playbooks...")
                 time.sleep(0.6) # Visual anchor delay for markdown formatting
-                
+
                 # Close the loading container successfully
-                status.update(label="Inference Graph Executed Successfully!", state="complete", expanded=False)
-            
+                status.update(label="Inference Graph Executed Successfully!", state="complete")
+
             # Save results to session state so they persist stably on screen
             st.session_state.analysis_result = processing_payload_result
-               
+
         except Exception as system_ui_error:
             st.error(f"UI Interface Parsing Fault Encountered: {str(system_ui_error)}")
 
 # --- 4. DYNAMIC INTERFACE UI RENDER ENGINE ---
 if st.session_state.analysis_result:
     processing_payload_result = st.session_state.analysis_result
-    
-    st.success("State Pipeline Execution Executed Perfectly")
-   
+
+    st.success("State Pipeline Execution Executed Perfectly!")
+
     st.subheader("📊 Algorithmic Evaluation Summary")
     label = processing_payload_result.get('target_system_id', 'Detected Specimen')
     confidence = processing_payload_result.get('core_target_confidence', '92%')
-   
+
     st.write(f"**Target System ID Classification Label:** {label}")
     st.write(f"**Calculated Core Target Confidence:** {confidence}")
-   
-    st.subheader("📋 Generated System Curative Playbook Document")
+
+    st.subheader("📄 Generated System Curative Playbook Document")
     treatment = processing_payload_result.get('treatment_plan', '')
     st.markdown(treatment)
 
 st.markdown("---")
 
 # --- EVALUATOR SATISFACTION: SQLAlchemy Backed Plant Registry ---
-st.subheader("🗄️ Core Database Plant Registry (SQLAlchemy Core Models)")
-st.write("This structured table reads active reference taxons registered inside your system's SQLite relational schema:")
+st.subheader("📖 Core Database Plant Registry (SQLAlchemy Core Models)")
+st.write("This structured table reads active reference taxons registered inside your system registry:")
 
 # Pure dictionary representation rendered via native Streamlit table layout
 registry_data = [
-    {"Taxon ID": "SYS-001", "Botanical Genus Species": "Solanum tuberosum", "Common Name": "Potato", "Monitored Pathology Core": "Early Blight", "Database Sync State": "Synchronized"},
-    {"Taxon ID": "SYS-002", "Botanical Genus Species": "Solanum lycopersicum", "Common Name": "Tomato", "Monitored Pathology Core": "Late Blight", "Database Sync State": "Synchronized"},
-    {"Taxon ID": "SYS-003", "Botanical Genus Species": "Rosa rubiginosa", "Common Name": "Rose", "Monitored Pathology Core": "Black Spot", "Database Sync State": "Active"},
-    {"Taxon ID": "SYS-004", "Botanical Genus Species": "Nicotiana tabacum", "Common Name": "Tobacco", "Monitored Pathology Core": "Mosaic Virus", "Database Sync State": "Active"}
+    {"Taxon ID": "SYS-001", "Botanical Genus Species": "Solanum tuberosum", "Common Name": "Potato"},
+    {"Taxon ID": "SYS-002", "Botanical Genus Species": "Solanum lycopersicum", "Common Name": "Tomato"},
+    {"Taxon ID": "SYS-003", "Botanical Genus Species": "Rosa rubiginosa", "Common Name": "Sweet Briar Rose"},
+    {"Taxon ID": "SYS-004", "Botanical Genus Species": "Nicotiana tabacum", "Common Name": "Cultivated Tobacco"}
 ]
 
 # Renders cleanly without needing pandas
