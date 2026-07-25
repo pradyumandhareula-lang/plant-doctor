@@ -1,4 +1,4 @@
-mport streamlit as st
+import streamlit as st
 from backend.agent import analyze_plant_image_with_openai
 
 # --- PAGE SETUP & CONFIGURATION ---
