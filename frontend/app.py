@@ -1,4 +1,5 @@
 import streamlit as st
+from backend.main import diagnose_plant
 import requests
 from PIL import Image
 import io
@@ -22,19 +23,8 @@ with tab1:
         if st.button("Run Plant Diagnosis 🚀"):
             with st.spinner("Analyzing plant details via pipeline..."):
                 try:
-                    # Prepare file payload to send to our running FastAPI
-                    img_bytes = uploaded_file.getvalue()
-                    files = {"file": (uploaded_file.name, img_bytes, uploaded_file.type)}
-                    
-                    # Direct communication link pointing to your running FastAPI backend
-                    # Change to "https://hf.space" when deploying live to Hugging Face!
-                    backend_url = "http://127.0.0.1:8000/predict"
-                    
-                    response = requests.post(backend_url, files=files)
-                    
-                    if response.status_code == 200:
-                        data = response.json()
-                        
+                    data = diagnose_plant(uploaded_file)
+
                         # Render matching layout items dynamically from main.py return dictionary
                         st.success(f"✅ {data.get('status')}")
                         st.subheader(f"🫘 Identified Condition: {data.get('label')}")
@@ -45,11 +35,10 @@ with tab1:
                         
                         # Save details into temporary session state storage
                         st.session_state['last_plant'] = data.get('label')
-                    else:
-                        st.error(f"Backend Server communication failure: {response.status_code}")
-                        
+                   
+                 
                 except Exception as e:
-                    st.error(f"Connection lost to server: {e}")
+                st.error(f"Connection lost to server: {e}")
 
 with tab2:
     st.title("📜 Past Diagnostic Records")
