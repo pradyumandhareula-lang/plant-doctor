@@ -49,7 +49,7 @@ def analyze_plant_image_with_openai(*args, **kwargs):
                     ]
                 }
             ],
-            temperature=temperature # 👈 Linked to frontend slider choice
+            temperature=0.2 # 👈 Linked to frontend slider choice
         )
 
         # 5. Extract structured json results using modern object dot-notation parameters
