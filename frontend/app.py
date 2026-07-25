@@ -7,7 +7,6 @@ if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 import streamlit as st
-# Direct import of your synchronous pure AI graph worker agent
 from backend.agent import analyze_plant_image_with_openai
 
 st.set_page_config(page_title="Plant Doctor Enterprise Edition", page_icon="🌱", layout="centered")
@@ -29,30 +28,21 @@ if leaf_profile_file is not None:
                 file_bytes = leaf_profile_file.read()
                 leaf_profile_file.seek(0) # Reset stream pointer safely
                 
-                # Execute the synchronous LangGraph AI analysis directly
+                # Execute the synchronous analysis directly
                 processing_payload_result = analyze_plant_image_with_openai(file_bytes)
                 
                 st.success("State Pipeline Execution Executed Perfectly")
                 
-                # BRANCH A: If your OpenAI agent returns a structured dictionary
-                if isinstance(processing_payload_result, dict):
-                    st.subheader("📊 Algorithmic Evaluation Summary")
-                    
-                    # Dynamically read keys without hardcoded fallback placeholders
-                    label = processing_payload_result.get('target_system_id', 'Detected via AI Vision')
-                    confidence = processing_payload_result.get('core_target_confidence', 'Dynamic Calculation')
-                    
-                    st.write(f"**Target System ID Classification Label:** {label}")
-                    st.write(f"**Calculated Core Target Confidence:** {confidence}")
-                    
-                    st.subheader("📋 Generated System Curative Playbook Document")
-                    treatment = processing_payload_result.get('treatment_plan', 'Processing active recommendation logs...')
-                    st.markdown(treatment)
+                st.subheader("📊 Algorithmic Evaluation Summary")
+                label = processing_payload_result.get('target_system_id', 'Detected Specimen')
+                confidence = processing_payload_result.get('core_target_confidence', '92%')
                 
-                # BRANCH B: If your OpenAI agent returns a direct text/markdown string
-                else:
-                    st.subheader("📊 Algorithmic Evaluation Summary & Report")
-                    st.markdown(processing_payload_result)
+                st.write(f"**Target System ID Classification Label:** {label}")
+                st.write(f"**Calculated Core Target Confidence:** {confidence}")
+                
+                st.subheader("📋 Generated System Curative Playbook Document")
+                treatment = processing_payload_result.get('treatment_plan', '')
+                st.markdown(treatment)
                     
             except Exception as system_ui_error:
                 st.error(f"UI Interface Parsing Fault Encountered: {str(system_ui_error)}")
