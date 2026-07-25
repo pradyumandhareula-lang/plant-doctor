@@ -1,10 +1,8 @@
 import base64
 import hashlib
 import os
-import json # <-- Added JSON parsing library
-import streamlit st
-from google import genai
-from google.genai import types
+import json  
+import streamlit as st # <-- Fixed the typo here
 
 # Initialize the modern Gemini Client using Streamlit Secrets configuration
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
@@ -41,9 +39,9 @@ def analyze_plant_image_with_openai(*args, **kwargs):
     )
 
     try:
-        # 5. Dispatch live vision token payloads dynamically using Gemini 3.5 Flash setup
+        # 5. Dispatch live vision token payloads dynamically using Gemini 2.0 Flash setup
         response = client.models.generate_content(
-            model='gemini-2.5-flash', # Reverted back to the verified active endpoints for modern SDKs
+            model='gemini-2.0-flash',  
             contents=[
                 "Execute rigorous pathological evaluation on this image target.",
                 image_part
@@ -73,4 +71,3 @@ def analyze_plant_image_with_openai(*args, **kwargs):
 
     except Exception as e:
         raise RuntimeError(f"An anomaly occurred inside the backend engine pipeline: {str(e)}")
-
