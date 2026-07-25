@@ -27,7 +27,7 @@ with st.sidebar:
     st.markdown("---")
     st.title("⚙️ OpenAI Model Configuration")
     
-    # Values passed directly to backend to alter visual evaluation variations
+    # Selection maps directly to backend pipeline execution parameters
     selected_model = st.selectbox(
         "Select Model", 
         ["gpt-4o", "gpt-4-turbo"], 
@@ -52,20 +52,21 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
+    # Always display uploaded preview matrix state
     st.image(uploaded_file, caption="Target Active Memory Processing Stream", use_container_width=True)
     file_bytes = uploaded_file.getvalue()
     
-    # FIX: Explicit trigger button to restore standard "AI App" workflow behavior
+    # Dedicated control trigger button to initialize neural pipeline tracking
     if st.button("🚀 Execute Neural Vision Diagnostics", type="primary", use_container_width=True):
         with st.spinner("Executing real-time AI vision diagnostics stream..."):
-            # Passes real bytes, dynamic model choice, and custom temperature settings
+            # Sends structural vectors straight to updated agent backend
             result = analyze_plant_image_with_openai(
                 file_bytes=file_bytes, 
                 model_name=selected_model, 
                 temperature=temperature
             )
             
-            # Cache the distinct computation values into workspace memory
+            # Commit calculations into current global active tracking engine
             st.session_state.analysis_result = result
             st.session_state.last_uploaded_file = uploaded_file.name
             st.rerun()
