@@ -26,19 +26,19 @@ with tab1:
                     data = diagnose_plant(uploaded_file)
 
                         # Render matching layout items dynamically from main.py return dictionary
-                        st.success(f"✅ {data.get('status')}")
-                        st.subheader(f"🫘 Identified Condition: {data.get('label')}")
-                        st.warning(f"📊 Confidence Level: {data.get('confidence')}%")
+        st.success(f"✅ {data.get('status')}")
+        st.subheader(f"🫘 Identified Condition: {data.get('label')}")
+        st.warning(f"📊 Confidence Level: {data.get('confidence')}%")
                         
-                        st.write("### 📋 Actionable Treatment Plan:")
-                        st.info(data.get("treatment_plan"))
+        st.write("### 📋 Actionable Treatment Plan:")
+        st.info(data.get("treatment_plan"))
                         
                         # Save details into temporary session state storage
-                        st.session_state['last_plant'] = data.get('label')
+        st.session_state['last_plant'] = data.get('label')
                    
                  
-                except Exception as e:
-                st.error(f"Connection lost to server: {e}")
+                    except Exception as e:
+                    st.error(f"Connection lost to server: {e}")
 
 with tab2:
     st.title("📜 Past Diagnostic Records")
