@@ -1,7 +1,7 @@
 import sys
 import os
 import time
-
+from backend.agent import analyze_plant_image, analyze_plant_image_with_openai
 # --- 1. DYNAMIC PATH ROUTING ---
 # Works seamlessly on both Windows locally and Streamlit Cloud
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
