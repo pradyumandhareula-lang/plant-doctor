@@ -17,7 +17,7 @@ if "OPENAI_API_KEY" in st.secrets:
     os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 from backend.agent import analyze_plant_image, analyze_plant_image_with_openai
 # Import backend function after setting up paths & environment variables
-from backend.agent import analyze_plant_image
+
 
 # CRITICAL: Page config must run BEFORE any sidebar elements
 st.set_page_config(page_title="Plant Doctor Enterprise", layout="wide")
