@@ -18,7 +18,7 @@ def analyze_plant_image_with_openai(*args, **kwargs):
         raise ValueError("API Key is missing. Please provide a valid Gemini API Key.")
 
     # 2. Initialize the client safely INSIDE the function per request
-    client = genai.Client(api_key=API_KEY)
+    client = genai.Client(api_key=api_key)
                           
     # 1. Extract image bytes dynamically from whichever keyword argument the UI sends
     img_bytes = kwargs.get('img_bytes') or kwargs.get('file_bytes')
