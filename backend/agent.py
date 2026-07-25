@@ -1,11 +1,12 @@
 import base64
 import hashlib
 import os
+import streamlit as st
 from google import genai
 from google.genai import types
 
-# Initialize the modern Gemini Client using your environment configuration
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+# Initialize the modern Gemini Client using Streamlit Secrets configuration
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 def analyze_plant_image_with_openai(*args, **kwargs):
     """
