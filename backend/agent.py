@@ -7,11 +7,18 @@ from openai import OpenAI
 # Automatically captures your credentials from environment configs
 client = OpenAI()
 
-def analyze_plant_image_with_openai(img_bytes: bytes, model_name: str = "gpt-4o"):
+def analyze_plant_image_with_openai(*args, **kwargs):
     """
     Processes raw visual payloads, generates a unique signature tracking code,
     and requests live diagnostic completions from the specified neural model matrix.
     """
+    # Dynamically extract image bytes whether passed as 'img_bytes' or 'file_bytes'
+    img_bytes = kwargs.get('img_bytes') or kwargs.get('file_bytes')
+    if not img_bytes and args:
+        img_bytes = args[0]
+        
+    model_name = kwargs.get('model_name', 'gpt-4o')
+
     # 1. Generate unique deterministic ID directly from image data to resolve history logs
     sha256_hash = hashlib.sha256(img_bytes).hexdigest()
     target_system_id = f"PLNT-HEX-{sha256_hash[:12].upper()}"
