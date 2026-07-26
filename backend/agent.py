@@ -39,7 +39,7 @@ def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *ar
             """
 
             response = client.models.generate_content(
-                model='gemini-2.0-flash',
+                model='gemini-2.5-flash',
                 contents=[prompt, pil_img]
             )
             
