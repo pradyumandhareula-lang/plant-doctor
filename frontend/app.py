@@ -1,3 +1,26 @@
+import streamlit as st
+
+# --- SIDEBAR: G-40 & TEMPERATURE SETTINGS ---
+with st.sidebar:
+    st.header("⚙️ Settings")
+    
+    # 1. G-40 Parameter
+    g40_setting = st.text_input(
+        "G-40 Setting", 
+        value="G40-Default",
+        help="Configure your G-40 parameter or system tag."
+    )
+    
+    # 2. Temperature Slider
+    temperature = st.slider(
+        "Temperature", 
+        min_value=0.0, 
+        max_value=1.0, 
+        value=0.2, 
+        step=0.05,
+        help="Controls output creativity vs determinism."
+    )
+
 import sys
 import os
 import time
