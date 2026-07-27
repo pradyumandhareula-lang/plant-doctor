@@ -48,8 +48,8 @@ if not st.session_state.logged_in:
     col_a, col_b, col_c = st.columns([1, 2, 1])
     
     with col_b:
-        st.markdown("<h1 style='text-align: center;'>🌱 Plant Doctor AI</h1>", unsafe_unsafe_html=True if hasattr(st, "unsafe_html") else False)
-        st.markdown("<p style='text-align: center; color: gray;'>Welcome! Please log in or create an account to access botanical diagnostics.</p>", unsafe_allow_html=True)
+        st.title("🌱 Plant Doctor AI")
+        st.caption("Welcome! Please log in or create an account to access botanical diagnostics.")
         
         tab_login, tab_signup = st.tabs(["🔑 Log In", "📝 Sign Up"])
 
