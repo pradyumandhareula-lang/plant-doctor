@@ -1,19 +1,61 @@
 import sys
 import os
+import sqlite3
 import streamlit as st
 
-# Ensure root directory is in python path
+# Ensure project root is in sys.path
 root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
-# Import DB and agent functions directly from backend
+# Database helper functions
+DB_PATH = os.path.join(root_dir, "database.db")
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS plants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            plant_name TEXT NOT NULL,
+            species TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS diagnoses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            plant_id INTEGER NOT NULL,
+            diagnosis_text TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (plant_id) REFERENCES plants (id)
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+# Initialize Database on boot
+init_db()
+
+# Import agent utilities
 try:
-    from backend.main import get_db, init_db
     from backend.agent import analyze_plant_image, compare_weekly_photos
-    init_db()
-except Exception as e:
-    st.error(f"Backend import error: {str(e)}")
+except Exception as import_err:
+    st.sidebar.error(f"Agent Import Warning: {import_err}")
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
@@ -84,8 +126,10 @@ with tabs[0]:
                     cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username_input, password_input))
                     conn.commit()
                     st.success("Account created successfully! Please log in.")
-                except Exception:
-                    st.error("Username already exists or database error.")
+                except sqlite3.IntegrityError:
+                    st.error("Username already exists. Please choose another.")
+                except Exception as e:
+                    st.error(f"Database error: {str(e)}")
                 finally:
                     conn.close()
             else:
