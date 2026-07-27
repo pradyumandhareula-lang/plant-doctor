@@ -11,11 +11,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling for full green theme, white sidebar selectors with black text, red buttons, and top-right logout
+# Custom CSS styling for full green theme, black text, red buttons, and compact file uploaders with green backgrounds and white borders
 st.markdown("""
     <style>
-    /* Full green background for the entire app and sidebar */
-    .stApp, [data-testid="stSidebar"] {
+    /* Full green background for the entire app and main block containers */
+    .stApp, [data-testid="stSidebar"], [data-testid="stMain"], [data-testid="block-container"] {
         background-color: #2e7d32 !important;
     }
     
@@ -46,9 +46,28 @@ st.markdown("""
         color: white !important;
     }
 
-    /* Push the logout button up and align it to the far right near share */
+    /* File uploader custom styling: compact size, green background, white border, black text */
+    [data-testid="stFileUploader"] {
+        max-width: 400px !important;
+    }
+    [data-testid="stFileUploader"] section {
+        background-color: #2e7d32 !important;
+        border: 2px solid #ffffff !important;
+        border-radius: 10px !important;
+        padding: 10px !important;
+    }
+    [data-testid="stFileUploader"] section * {
+        color: #000000 !important;
+    }
+    [data-testid="stFileUploader"] button {
+        background-color: #d32f2f !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+
+    /* Pull the logout button up and align it to match the top header area */
     .logout-container {
-        margin-top: -35px;
+        margin-top: -55px;
         display: flex;
         justify-content: flex-end;
     }
