@@ -2,6 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 from PIL import Image
 import os
+from datetime import datetime
 
 # Configure page settings
 st.set_page_config(
@@ -10,10 +11,9 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling to give buttons a nice vibrant color and rounded look
+# Custom CSS styling for vibrant buttons and layout spacing
 st.markdown("""
     <style>
-    /* Style primary buttons with a bright green theme */
     div.stButton > button[kind="primary"] {
         background-color: #2e7d32;
         color: white;
@@ -25,7 +25,6 @@ st.markdown("""
         background-color: #1b5e20;
         color: white;
     }
-    /* Style regular buttons as well */
     div.stButton > button {
         border-radius: 8px;
         font-weight: 500;
@@ -33,9 +32,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state for authentication
+# Initialize session state variables
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
+
+if "diagnosis_history" not in st.session_state:
+    st.session_state.diagnosis_history = []
 
 # ==========================================
 # LOGIN PAGE
@@ -62,22 +64,29 @@ if not st.session_state.authenticated:
 # ==========================================
 else:
     # Sidebar Navigation
-    st.sidebar.title("🌿 Plant Doctor AI")
+    st.sidebar.title("🌿 Navigation")
     
-    if st.sidebar.button("Log Out"):
-        st.session_state.authenticated = False
-        st.rerun()
-
     page = st.sidebar.selectbox(
         "Select Feature", 
-        ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant"]
+        ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
     )
+
+    # Top Header layout with Centered Main App Title and Log Out button on the top right
+    header_col1, header_col2, header_col3 = st.columns([1, 6, 1])
+    with header_col2:
+        st.markdown("<h2 style='text-align: center;'>🌿 Plant Doctor AI</h2>", unsafe_allow_html=True)
+    with header_col3:
+        if st.button("🚪 Log Out"):
+            st.session_state.authenticated = False
+            st.rerun()
+
+    st.markdown("---")
 
     # ==========================================
     # PAGE 1: PLANT DIAGNOSIS
     # ==========================================
     if page == "Plant Diagnosis":
-        st.title("🌱 Plant Health Diagnosis")
+        st.markdown("### 🌱 Plant Health Diagnosis")
         st.markdown("Upload a plant image for immediate AI health analysis.")
 
         uploaded_file = st.file_uploader("Choose a plant image (JPG, JPEG, PNG)", type=["jpg", "jpeg", "png"])
@@ -87,7 +96,6 @@ else:
             
             with col1:
                 st.image(uploaded_file, caption="Uploaded Plant", use_column_width=True)
-                # Colored primary button placed underneath the photo
                 run_analysis = st.button("Run Botanical Analysis", type="primary")
                 
             with col2:
@@ -105,8 +113,16 @@ else:
                             )
                             
                             response = model.generate_content([img, prompt])
+                            analysis_result = response.text
+                            
                             st.success("Analysis Complete!")
-                            st.markdown(response.text)
+                            st.markdown(analysis_result)
+
+                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            st.session_state.diagnosis_history.append({
+                                "time": timestamp,
+                                "result": analysis_result
+                            })
                         except Exception as e:
                             st.error(f"Error running diagnosis: {e}")
 
@@ -114,7 +130,7 @@ else:
     # PAGE 2: WEEKLY PHOTO COMPARISON
     # ==========================================
     elif page == "Weekly Photo Comparison":
-        st.title("📅 Weekly Photo Comparison")
+        st.markdown("### 📅 Weekly Photo Comparison")
         st.markdown("Compare side-by-side plant images over time to evaluate growth or recovery.")
 
         col1, col2 = st.columns(2)
@@ -132,7 +148,6 @@ else:
                 st.image(w2_file, use_column_width=True)
 
         if w1_file and w2_file:
-            # Colored primary comparison button
             if st.button("🔍 Compare Growth & Recovery Progress", type="primary"):
                 with st.spinner("Analyzing progress..."):
                     try:
@@ -156,7 +171,7 @@ else:
     # PAGE 3: CHAT ASSISTANT
     # ==========================================
     elif page == "💬 Chat Assistant":
-        st.title("💬 Plant Doctor Chat Assistant")
+        st.markdown("### 💬 Plant Doctor Chat Assistant")
         st.markdown("Have questions about your plant? **Please upload a photo below** and type your question to get AI-powered answers about the image!")
 
         if "messages" not in st.session_state:
@@ -214,3 +229,17 @@ else:
                         st.session_state.messages.append({"role": "assistant", "content": ai_response})
                     except Exception as e:
                         st.error(f"Error generating response: {e}")
+
+    # ==========================================
+    # PAGE 4: SEARCH HISTORY
+    # ==========================================
+    elif page == "📜 Search History":
+        st.markdown("### 📜 Plant Search & Diagnosis History")
+        st.markdown("Here is a log of all previous plant health analyses performed during your session.")
+
+        if not st.session_state.diagnosis_history:
+            st.info("No plant diagnosis history found yet. Run an analysis on the 'Plant Diagnosis' page to see records here!")
+        else:
+            for idx, item in enumerate(reversed(st.session_state.diagnosis_history), 1):
+                with st.expander(f"Diagnosis #{len(st.session_state.diagnosis_history) - idx + 1} — {item['time']}"):
+                    st.markdown(item["result"])
