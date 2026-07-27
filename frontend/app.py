@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling for full green theme, black text, red buttons, compact uploaders, and header toolbar color fix
+# Custom CSS styling for full green theme, black text, red buttons, compact uploaders, and header fix
 st.markdown("""
     <style>
     /* Full green background for the entire app, main containers, and Streamlit header toolbar */
@@ -64,13 +64,6 @@ st.markdown("""
         color: #ffffff !important;
         border: none !important;
     }
-
-    /* Pull the logout button up and align it to match the top header area */
-    .logout-container {
-        margin-top: -55px;
-        display: flex;
-        justify-content: flex-end;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -116,13 +109,13 @@ else:
         ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
     )
 
-    # Top Header layout with Big Centered Title and top-right Log Out button
-    header_col1, header_col2, header_col3 = st.columns([1, 6, 1])
-    with header_col2:
-        st.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🌿 Plant Doctor AI</h1>", unsafe_allow_html=True)
-    with header_col3:
-        st.markdown("<div class='logout-container'>", unsafe_allow_html=True)
-        if st.button("🚪 Log Out"):
+    # Top Header layout: Title on the left, Logout button placed right next to "Share" area
+    title_col, logout_col = st.columns([5, 1])
+    with title_col:
+        st.markdown("<h1 style='font-size: 2.8rem; margin: 0;'>🌿 Plant Doctor AI</h1>", unsafe_allow_html=True)
+    with logout_col:
+        st.markdown("<div style='display: flex; justify-content: flex-end; align-items: center; height: 100%; padding-top: 15px;'>", unsafe_allow_html=True)
+        if st.button("🚪 Log Out", type="primary"):
             st.session_state.authenticated = False
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
