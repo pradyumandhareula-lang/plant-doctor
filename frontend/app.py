@@ -46,6 +46,19 @@ st.markdown("""
         color: white !important;
     }
 
+    /* Smaller Logout button styled in dark green to match theme */
+    div.logout-btn-class button {
+        background-color: #1b5e20 !important;
+        color: #ffffff !important;
+        padding: 2px 8px !important;
+        font-size: 0.8rem !important;
+        border-radius: 6px !important;
+        border: 1px solid #ffffff !important;
+    }
+    div.logout-btn-class button:hover {
+        background-color: #123814 !important;
+    }
+
     /* File uploader custom styling: compact size, green background, white border, black text */
     [data-testid="stFileUploader"] {
         max-width: 400px !important;
@@ -109,13 +122,13 @@ else:
         ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
     )
 
-    # Top Header layout: Title on the left, Logout button placed right next to "Share" area
-    title_col, logout_col = st.columns([5, 1])
-    with title_col:
+    # Top Header layout: Title on the left, smaller custom green Logout button positioned top-right near Share
+    col_title, col_logout = st.columns([5, 1])
+    with col_title:
         st.markdown("<h1 style='font-size: 2.8rem; margin: 0;'>🌿 Plant Doctor AI</h1>", unsafe_allow_html=True)
-    with logout_col:
-        st.markdown("<div style='display: flex; justify-content: flex-end; align-items: center; height: 100%; padding-top: 15px;'>", unsafe_allow_html=True)
-        if st.button("🚪 Log Out", type="primary"):
+    with col_logout:
+        st.markdown("<div class='logout-btn-class' style='display: flex; justify-content: flex-end; align-items: center; padding-top: 15px;'>", unsafe_allow_html=True)
+        if st.button("🚪 Logout"):
             st.session_state.authenticated = False
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
