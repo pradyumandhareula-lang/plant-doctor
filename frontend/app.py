@@ -10,6 +10,29 @@ st.set_page_config(
     layout="wide"
 )
 
+# Custom CSS styling to give buttons a nice vibrant color and rounded look
+st.markdown("""
+    <style>
+    /* Style primary buttons with a bright green theme */
+    div.stButton > button[kind="primary"] {
+        background-color: #2e7d32;
+        color: white;
+        border-radius: 8px;
+        font-weight: bold;
+        border: none;
+    }
+    div.stButton > button[kind="primary"]:hover {
+        background-color: #1b5e20;
+        color: white;
+    }
+    /* Style regular buttons as well */
+    div.stButton > button {
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Initialize session state for authentication
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -24,7 +47,7 @@ if not st.session_state.authenticated:
     with st.form("login_form"):
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
-        submit_button = st.form_submit_button("Log In")
+        submit_button = st.form_submit_button("Log In", type="primary")
 
         if submit_button:
             if username == "admin" and password == "password123":
@@ -64,7 +87,8 @@ else:
             
             with col1:
                 st.image(uploaded_file, caption="Uploaded Plant", use_column_width=True)
-                run_analysis = st.button("Run Botanical Analysis")
+                # Colored primary button placed underneath the photo
+                run_analysis = st.button("Run Botanical Analysis", type="primary")
                 
             with col2:
                 st.subheader("Results")
@@ -108,7 +132,8 @@ else:
                 st.image(w2_file, use_column_width=True)
 
         if w1_file and w2_file:
-            if st.button("🔍 Compare Growth & Recovery Progress"):
+            # Colored primary comparison button
+            if st.button("🔍 Compare Growth & Recovery Progress", type="primary"):
                 with st.spinner("Analyzing progress..."):
                     try:
                         i1 = Image.open(w1_file)
@@ -137,7 +162,6 @@ else:
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # Display chat history
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 if isinstance(message["content"], list):
@@ -149,7 +173,6 @@ else:
                 else:
                     st.markdown(message["content"])
 
-        # Dedicated column/uploader block inside the chat interface
         st.markdown("---")
         st.subheader("📷 Attach Photo for Chat Query")
         chat_image = st.file_uploader("Upload a plant photo for the assistant to inspect", type=["jpg", "jpeg", "png"], key="chat_uploader")
@@ -157,9 +180,7 @@ else:
         if chat_image:
             st.image(chat_image, caption="Attached Photo Preview", width=200)
 
-        # Chat text input
         if prompt := st.chat_input("Ask a question about the photo or your plant care..."):
-            # Construct content payload
             content_to_send = [prompt]
             display_content = [prompt]
             
@@ -179,7 +200,6 @@ else:
                     try:
                         model = genai.GenerativeModel("gemini-3.6-flash")
                         
-                        # Rebuild history securely for the model
                         formatted_history = []
                         for m in st.session_state.messages[:-1]:
                             role = "model" if m["role"] == "assistant" else "user"
