@@ -11,11 +11,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling for full green theme, black text, red buttons, and compact file uploaders with green backgrounds and white borders
+# Custom CSS styling for full green theme, black text, red buttons, compact uploaders, and header toolbar color fix
 st.markdown("""
     <style>
-    /* Full green background for the entire app and main block containers */
-    .stApp, [data-testid="stSidebar"], [data-testid="stMain"], [data-testid="block-container"] {
+    /* Full green background for the entire app, main containers, and Streamlit header toolbar */
+    .stApp, [data-testid="stSidebar"], [data-testid="stMain"], [data-testid="block-container"], header[data-testid="stHeader"] {
         background-color: #2e7d32 !important;
     }
     
