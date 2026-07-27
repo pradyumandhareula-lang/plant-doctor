@@ -147,7 +147,7 @@ else:
                     with st.spinner("Analyzing plant..."):
                         try:
                             img = Image.open(uploaded_file)
-                            model = genai.GenerativeModel("gemini-3.6")
+                            model = genai.GenerativeModel("gemini-3.6-flash")
 
                             prompt = (
                                 "Analyze this plant image. Provide the detected species name, "
@@ -201,7 +201,7 @@ else:
                     i1.thumbnail((800, 800))
                     i2.thumbnail((800, 800))
 
-                    comp_model = genai.GenerativeModel("gemini-3.6")
+                    comp_model = genai.GenerativeModel("gemini-3.6-flash")
                     prompt = "Compare these two plant photos taken a week apart. Evaluate changes in growth, leaf color, recovery progress, or signs of stress."
 
                     res = comp_model.generate_content([i1, i2, prompt])
@@ -295,7 +295,7 @@ else:
                     st.image(chat_image, width=200)
 
             try:
-                model = genai.GenerativeModel("gemini-3.6")
+                model = genai.GenerativeModel("gemini-3.6-flash")
                 
                 formatted_history = []
                 for m in st.session_state.messages[:-1]:
