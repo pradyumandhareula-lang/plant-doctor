@@ -8,7 +8,7 @@ st.set_page_config(page_title="Plant Doctor AI", page_icon="🌱", layout="wide"
 
 # --- CONFIGURE GEMINI API DIRECTLY ---
 # Replace with your actual Gemini API key
-GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 genai.configure(api_key=GEMINI_API_KEY)
 
 # System prompt for structured vision diagnosis
