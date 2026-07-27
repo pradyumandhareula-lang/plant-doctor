@@ -2,8 +2,32 @@ import sys
 import os
 import requests
 import streamlit as st
+import threading
+import uvicorn
+import time
 
-API_URL = "http://localhost:8000"
+# --- 0. BACKGROUND FASTAPI RUNNER (FOR STREAMLIT CLOUD DEPLOYMENT) ---
+def run_fastapi():
+    try:
+        from backend.main import app
+        uvicorn.run(app, host="127.0.0.1", port=8000, log_level="error")
+    except Exception as e:
+        print(f"FastAPI background server error: {e}")
+
+# Check if FastAPI is already responding; if not, spin it up in a thread
+@st.cache_resource
+def start_backend():
+    try:
+        requests.get("http://127.0.0.1:8000/docs", timeout=1)
+    except Exception:
+        thread = threading.Thread(target=run_fastapi, daemon=True)
+        thread.start()
+        time.sleep(2) # Give uvicorn a moment to initialize database & routes
+
+start_backend()
+
+API_URL = "http://127.0.0.1:8000"
+
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
@@ -11,6 +35,7 @@ st.set_page_config(
     page_icon="🌿",
     layout="wide"
 )
+
 
 # --- 2. SIDEBAR: G-40 & TEMPERATURE SETTINGS & AUTH ---
 with st.sidebar:
@@ -48,13 +73,16 @@ with st.sidebar:
     else:
         st.info("Not logged in")
 
+
 # --- 3. UI HEADER ---
 st.title("🌿 Plant Doctor AI Pathologist")
 st.markdown("Upload a leaf or plant image to run automated botanical diagnosis.")
 st.divider()
 
+
 # --- 4. TABS NAVIGATION ---
 tabs = st.tabs(["🔐 Auth", "🪴 Plant Registry", "🔍 AI Diagnosis", "📊 Weekly Check-In"])
+
 
 # ---------------------------------------------------------
 # TAB 1: USER AUTHENTICATION
@@ -95,6 +123,7 @@ with tabs[0]:
                 except Exception as e:
                     st.error(f"Cannot connect to backend: {str(e)}")
 
+
 # ---------------------------------------------------------
 # TAB 2: PLANT REGISTRY
 # ---------------------------------------------------------
@@ -134,6 +163,7 @@ with tabs[1]:
                     st.info("No plants registered yet.")
         except Exception as e:
             st.error(f"Failed to fetch plant registry: {str(e)}")
+
 
 # ---------------------------------------------------------
 # TAB 3: AI DIAGNOSIS (ROUTED THROUGH FASTAPI)
@@ -206,6 +236,7 @@ with tabs[2]:
                 else:
                     st.info("Upload an image on the left and click **Run Botanical Analysis** to see results.")
 
+
 # ---------------------------------------------------------
 # TAB 4: WEEKLY CHECK-IN (PROGRESS COMPARISON)
 # ---------------------------------------------------------
@@ -235,6 +266,7 @@ with tabs[3]:
                     st.error(f"Comparison failed: {response.json().get('detail', 'Error')}")
             except Exception as e:
                 st.error(f"Connection Error: {str(e)}")
+
 
 # --- FOOTER ---
 st.divider()
