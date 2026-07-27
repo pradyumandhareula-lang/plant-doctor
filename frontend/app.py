@@ -11,23 +11,36 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling for vibrant buttons and layout spacing
+# Custom CSS styling for colors, large title, green theme, red action button, and higher logout button
 st.markdown("""
     <style>
+    /* Green theme adjustments for headings */
+    h1, h2, h3, .green-title {
+        color: #2e7d32 !important;
+    }
+    
+    /* Primary buttons (Run Analysis / Compare / New Chat) styled in RED */
     div.stButton > button[kind="primary"] {
-        background-color: #2e7d32;
-        color: white;
+        background-color: #d32f2f !important;
+        color: white !important;
         border-radius: 8px;
         font-weight: bold;
         border: none;
     }
     div.stButton > button[kind="primary"]:hover {
-        background-color: #1b5e20;
-        color: white;
+        background-color: #b71c1c !important;
+        color: white !important;
     }
+    
+    /* Standard button styling */
     div.stButton > button {
         border-radius: 8px;
         font-weight: 500;
+    }
+
+    /* Push the logout button up slightly */
+    .logout-container {
+        margin-top: -15px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -38,6 +51,9 @@ if "authenticated" not in st.session_state:
 
 if "diagnosis_history" not in st.session_state:
     st.session_state.diagnosis_history = []
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # ==========================================
 # LOGIN PAGE
@@ -71,14 +87,16 @@ else:
         ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
     )
 
-    # Top Header layout with Centered Main App Title and Log Out button on the top right
+    # Top Header layout with Big Centered Title and higher-positioned Log Out button
     header_col1, header_col2, header_col3 = st.columns([1, 6, 1])
     with header_col2:
-        st.markdown("<h2 style='text-align: center;'>🌿 Plant Doctor AI</h2>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🌿 Plant Doctor AI</h1>", unsafe_allow_html=True)
     with header_col3:
+        st.markdown("<div class='logout-container'>", unsafe_allow_html=True)
         if st.button("🚪 Log Out"):
             st.session_state.authenticated = False
             st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -171,11 +189,14 @@ else:
     # PAGE 3: CHAT ASSISTANT
     # ==========================================
     elif page == "💬 Chat Assistant":
-        st.markdown("### 💬 Plant Doctor Chat Assistant")
-        st.markdown("Have questions about your plant? **Please upload a photo below** and type your question to get AI-powered answers about the image!")
-
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+        chat_col1, chat_col2 = st.columns([5, 1])
+        with chat_col1:
+            st.markdown("### 💬 Plant Doctor Chat Assistant")
+            st.markdown("Have questions about your plant? Upload a photo and type your question below!")
+        with chat_col2:
+            if st.button("🗑️ New Chat", type="primary"):
+                st.session_state.messages = []
+                st.rerun()
 
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
