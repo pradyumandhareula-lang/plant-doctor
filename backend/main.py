@@ -1,4 +1,4 @@
-mport sqlite3
+import sqlite3
 import os
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
