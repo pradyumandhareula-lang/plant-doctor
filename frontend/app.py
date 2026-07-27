@@ -1,97 +1,154 @@
 import streamlit as st
-import requests
 from PIL import Image
+import google.generativeai as genai
+import json
 
-st.set_page_config(page_title="Plant Doctor AI", layout="wide")
+# Page setup
+st.set_page_config(page_title="Plant Doctor AI", page_icon="🌱", layout="wide")
 
-# --- BACKEND API CONFIG ---
-API_BASE_URL = "http://localhost:8000" # Update to your deployed FastAPI URL on Streamlit Cloud
+# --- CONFIGURE GEMINI API DIRECTLY ---
+# Replace with your actual Gemini API key
+GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
+genai.configure(api_key=GEMINI_API_KEY)
+
+# System prompt for structured vision diagnosis
+SYSTEM_PROMPT = """
+You are an expert botanical doctor AI. Analyze the uploaded plant image and identify:
+1. Plant species (common and scientific name). If no plant/flower/leaf is present, set species to 'Unknown'.
+2. Health status and confidence percentage (0-100%).
+3. Recommended treatment plan (bullet points for Sunlight, Watering, and Care).
+
+Respond strictly in valid JSON format matching this schema:
+{
+    "species": "Plant Name",
+    "health_status": "Healthy / Diseased",
+    "confidence": 95,
+    "treatment_plan": [
+        "Sunlight: ...",
+        "Watering: ...",
+        "Care: ..."
+    ]
+}
+"""
 
 # --- SESSION STATE INITIALIZATION ---
-if "token" not in st.session_state:
-    st.session_state.token = None
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = None
+if "users" not in st.session_state:
+    st.session_state.users = {"demo": "password123"} # Default test account
+if "registry" not in st.session_state:
+    st.session_state.registry = []
 
-# --- SIDEBAR: AUTHENTICATION & NAVIGATION ---
-st.sidebar.title("🌱 Plant Doctor AI")
+# ==============================================================================
+# SCREEN 1: LOGIN / SIGN UP GATEWAY
+# ==============================================================================
+if not st.session_state.logged_in:
+    col_a, col_b, col_c = st.columns([1, 2, 1])
+    
+    with col_b:
+        st.markdown("<h1 style='text-align: center;'>🌱 Plant Doctor AI</h1>", unsafe_unsafe_html=True if hasattr(st, "unsafe_html") else False)
+        st.markdown("<p style='text-align: center; color: gray;'>Welcome! Please log in or create an account to access botanical diagnostics.</p>", unsafe_allow_html=True)
+        
+        tab_login, tab_signup = st.tabs(["🔑 Log In", "📝 Sign Up"])
 
-if st.session_state.token is None:
-    st.sidebar.subheader("Login / Sign Up")
-    auth_mode = st.sidebar.radio("Choose Mode", ["Login", "Sign Up"])
-    username_input = st.sidebar.text_input("Username")
-    password_input = st.sidebar.text_input("Password", type="password")
-
-    if auth_mode == "Login":
-        if st.sidebar.button("Log In"):
-            try:
-                res = requests.post(f"{API_BASE_URL}/login", data={"username": username_input, "password": password_input})
-                if res.status_code == 200:
-                    data = res.json()
-                    st.session_state.token = data.get("access_token")
-                    st.session_state.username = username_input
-                    st.sidebar.success(f"Welcome, {username_input}!")
+        with tab_login:
+            st.subheader("Login to your account")
+            login_user = st.text_input("Username", key="l_user")
+            login_pass = st.text_input("Password", type="password", key="l_pass")
+            
+            if st.button("Log In", type="primary", use_container_width=True):
+                if login_user in st.session_state.users and st.session_state.users[login_user] == login_pass:
+                    st.session_state.logged_in = True
+                    st.session_state.username = login_user
+                    st.success(f"Welcome back, {login_user}!")
                     st.rerun()
                 else:
-                    st.sidebar.error("Invalid credentials.")
-            except Exception as e:
-                st.sidebar.error(f"Auth server error: {e}")
-    else:
-        if st.sidebar.button("Sign Up"):
-            try:
-                res = requests.post(f"{API_BASE_URL}/register", json={"username": username_input, "password": password_input})
-                if res.status_code in [200, 201]:
-                    st.sidebar.success("Account created! Please log in.")
+                    st.error("Invalid username or password.")
+
+        with tab_signup:
+            st.subheader("Create a new account")
+            signup_user = st.text_input("Choose Username", key="s_user")
+            signup_pass = st.text_input("Choose Password", type="password", key="s_pass")
+            
+            if st.button("Create Account", use_container_width=True):
+                if signup_user in st.session_state.users:
+                    st.error("Username already exists!")
+                elif signup_user and signup_pass:
+                    st.session_state.users[signup_user] = signup_pass
+                    st.success("Account created successfully! You can now log in.")
                 else:
-                    st.sidebar.error("Registration failed.")
-            except Exception as e:
-                st.sidebar.error(f"Auth server error: {e}")
+                    st.error("Please fill in all fields.")
+
+# ==============================================================================
+# SCREEN 2: MAIN DASHBOARD (AFTER LOGIN)
+# ==============================================================================
 else:
-    st.sidebar.write(f"Logged in as: **{st.session_state.username}**")
-    if st.sidebar.button("Log Out"):
-        st.session_state.token = None
-        st.session_state.username = None
-        st.rerun()
+    # Top Header & User Info
+    top_col1, top_col2 = st.columns([4, 1])
+    with top_col1:
+        st.title("🌱 Plant Doctor AI")
+    with top_col2:
+        st.write(f"Logged in as: **{st.session_state.username}**")
+        if st.button("Log Out"):
+            st.session_state.logged_in = False
+            st.session_state.username = None
+            st.rerun()
 
-st.sidebar.markdown("---")
-navigation = st.sidebar.selectbox(
-    "Select Feature", 
-    ["Single Image Diagnosis", "Plant Registry", "Weekly Photo Comparison"]
-)
+    st.markdown("---")
 
-# ==============================================================================
-# FEATURE 1: SINGLE IMAGE DIAGNOSIS (With UI & Truncation Fixes)
-# ==============================================================================
-if navigation == "Single Image Diagnosis":
-    st.title("🩺 Single Image Diagnosis")
-    st.write("Upload a leaf/plant image for immediate AI analysis.")
+    # Main Option Tabs (3 Features to Choose From)
+    tab1, tab2, tab3 = st.tabs([
+        "🩺 Single Image Diagnosis", 
+        "🪴 Plant Registry", 
+        "📊 Weekly Photo Comparison"
+    ])
 
-    col1, col2 = st.columns([1, 1.2]) # 1:1.2 ratio gives room for full text display
+    # --------------------------------------------------------------------------
+    # OPTION 1: SINGLE IMAGE DIAGNOSIS
+    # --------------------------------------------------------------------------
+    with tab1:
+        st.subheader("Single Image Diagnosis")
+        st.write("Upload a leaf or plant image for immediate AI health analysis.")
 
-    with col1:
-        st.header("Upload")
-        uploaded_file = st.file_uploader("Select a clear leaf or plant image (JPG, JPEG, PNG)", type=["jpg", "jpeg", "png"])
-        
-        if uploaded_file is not None:
-            image = Image.open(uploaded_file)
-            st.image(image, use_container_width=True)
-            analyze_btn = st.button("🚀 Run Botanical Analysis", type="primary")
+        col1, col2 = st.columns([1, 1.2])
 
-    with col2:
-        st.header("Results")
-        if uploaded_file is not None and analyze_btn:
-            with st.spinner("Analyzing plant..."):
-                try:
-                    uploaded_file.seek(0)
-                    files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-                    headers = {"Authorization": f"Bearer {st.session_state.token}"} if st.session_state.token else {}
-                    
-                    response = requests.post(f"{API_BASE_URL}/analyze", files=files, headers=headers)
+        with col1:
+            st.markdown("### Upload Image")
+            uploaded_file = st.file_uploader("Select a plant image (JPG, JPEG, PNG)", type=["jpg", "jpeg", "png"], key="diag_file")
+            
+            if uploaded_file is not None:
+                image = Image.open(uploaded_file)
+                st.image(image, use_container_width=True)
+                analyze_btn = st.button("🚀 Run Botanical Analysis", type="primary", use_container_width=True)
 
-                    if response.status_code == 200:
-                        data = response.json()
+        with col2:
+            st.markdown("### Results")
+            if uploaded_file is not None and analyze_btn:
+                with st.spinner("Analyzing plant..."):
+                    try:
+                        # Image compression to keep payloads fast
+                        img = Image.open(uploaded_file)
+                        img.thumbnail((800, 800))
 
-                        # Uses Markdown instead of st.metric to prevent 'He...' truncation
+                        # Call Gemini Model
+                        model = genai.GenerativeModel(
+                            model_name="gemini-flash",
+                            system_instruction=SYSTEM_PROMPT
+                        )
+                        
+                        response = model.generate_content(
+                            [img, "Analyze this plant image."],
+                            generation_config={
+                                "response_mime_type": "application/json",
+                                "temperature": 0.2
+                            }
+                        )
+
+                        data = json.loads(response.text)
+
+                        # Display results without truncation
                         st.markdown(f"**Detected Species:** {data.get('species', 'N/A')}")
                         st.markdown(f"**Health Status:** {data.get('health_status', 'N/A')}")
                         st.markdown(f"**Confidence:** {data.get('confidence', 0)}%")
@@ -104,99 +161,83 @@ if navigation == "Single Image Diagnosis":
                                 st.write(f"- {step}")
                         else:
                             st.write("No specific treatments required.")
-                    else:
-                        st.error(f"API Error ({response.status_code}): {response.text}")
-                except Exception as e:
-                    st.error(f"Could not connect to backend: {e}")
-        else:
-            st.info("Upload an image and click 'Run Botanical Analysis' to see results.")
 
-# ==============================================================================
-# FEATURE 2: PLANT REGISTRY
-# ==============================================================================
-elif navigation == "Plant Registry":
-    st.title("🪴 Plant Registry")
-    st.write("Manage your registered plants and view historical health records.")
+                    except Exception as e:
+                        st.error(f"Error processing diagnosis: {e}")
+            else:
+                st.info("Upload an image on the left and click 'Run Botanical Analysis'.")
 
-    if not st.session_state.token:
-        st.warning("Please log in from the sidebar to access your plant registry.")
-    else:
-        st.subheader("Register a New Plant")
-        with st.form("register_plant_form"):
-            plant_name = st.text_input("Plant Nickname")
-            species_input = st.text_input("Species (Optional)")
-            submitted = st.form_submit_button("Add to Registry")
+    # --------------------------------------------------------------------------
+    # OPTION 2: PLANT REGISTRY
+    # --------------------------------------------------------------------------
+    with tab2:
+        st.subheader("Plant Registry")
+        st.write("Keep track of your personal plant collection.")
 
-            if submitted and plant_name:
-                try:
-                    headers = {"Authorization": f"Bearer {st.session_state.token}"}
-                    res = requests.post(
-                        f"{API_BASE_URL}/registry/add", 
-                        json={"name": plant_name, "species": species_input}, 
-                        headers=headers
-                    )
-                    if res.status_code in [200, 201]:
-                        st.success(f"Added {plant_name} to your registry!")
-                    else:
-                        st.error("Failed to add plant.")
-                except Exception as e:
-                    st.error(f"Server error: {e}")
+        with st.form("add_plant_form"):
+            st.markdown("#### Register a New Plant")
+            p_name = st.text_input("Plant Nickname (e.g., 'Monstera in Living Room')")
+            p_species = st.text_input("Species (Optional)")
+            sub_btn = st.form_submit_button("Add to Registry")
+
+            if sub_btn and p_name:
+                entry = {
+                    "owner": st.session_state.username,
+                    "name": p_name,
+                    "species": p_species if p_species else "Unknown Species"
+                }
+                st.session_state.registry.append(entry)
+                st.success(f"Added '{p_name}' to your registry!")
 
         st.markdown("---")
-        st.subheader("Your Registered Plants")
-        try:
-            headers = {"Authorization": f"Bearer {st.session_state.token}"}
-            res = requests.get(f"{API_BASE_URL}/registry/list", headers=headers)
-            if res.status_code == 200:
-                plants = res.json()
-                if plants:
-                    for p in plants:
-                        with st.expander(f"🪴 {p.get('name')} ({p.get('species', 'Unknown Species')})"):
-                            st.write(f"**ID:** {p.get('id')}")
-                            st.write(f"**Added Date:** {p.get('created_at', 'N/A')}")
-                else:
-                    st.info("No registered plants found. Add one above!")
-        except Exception as e:
-            st.error(f"Could not load registry: {e}")
+        st.markdown("#### Your Saved Plants")
+        user_plants = [p for p in st.session_state.registry if p["owner"] == st.session_state.username]
 
-# ==============================================================================
-# FEATURE 3: WEEKLY PHOTO COMPARISON TOOL
-# ==============================================================================
-elif navigation == "Weekly Photo Comparison":
-    st.title("📊 Weekly Photo Comparison")
-    st.write("Compare week-over-week plant growth and recovery status using dual-image vision analysis.")
+        if user_plants:
+            for idx, item in enumerate(user_plants, 1):
+                with st.expander(f"🪴 {idx}. {item['name']} — ({item['species']})"):
+                    st.write(f"**Registered By:** {item['owner']}")
+        else:
+            st.info("No plants registered yet. Use the form above to add one.")
 
-    col1, col2 = st.columns(2)
+    # --------------------------------------------------------------------------
+    # OPTION 3: WEEKLY PHOTO COMPARISON
+    # --------------------------------------------------------------------------
+    with tab3:
+        st.subheader("Weekly Photo Comparison")
+        st.write("Compare side-by-side plant images over time to evaluate growth or recovery.")
 
-    with col1:
-        st.subheader("Week 1 (Baseline Image)")
-        img_week1 = st.file_uploader("Upload Week 1 Photo", type=["jpg", "jpeg", "png"], key="w1")
-        if img_week1:
-            st.image(Image.open(img_week1), use_container_width=True)
+        c1, c2 = st.columns(2)
 
-    with col2:
-        st.subheader("Week 2 (Current Image)")
-        img_week2 = st.file_uploader("Upload Week 2 Photo", type=["jpg", "jpeg", "png"], key="w2")
-        if img_week2:
-            st.image(Image.open(img_week2), use_container_width=True)
+        with c1:
+            st.markdown("#### Week 1 (Baseline)")
+            w1_file = st.file_uploader("Upload Week 1 Photo", type=["jpg", "jpeg", "png"], key="w1_u")
+            if w1_file:
+                st.image(Image.open(w1_file), use_container_width=True)
 
-    if img_week1 and img_week2:
-        if st.button("🔍 Compare Growth & Recovery", type="primary"):
-            with st.spinner("Analyzing side-by-side progression..."):
-                try:
-                    files = [
-                        ("files", (img_week1.name, img_week1.getvalue(), img_week1.type)),
-                        ("files", (img_week2.name, img_week2.getvalue(), img_week2.type))
-                    ]
-                    headers = {"Authorization": f"Bearer {st.session_state.token}"} if st.session_state.token else {}
-                    
-                    res = requests.post(f"{API_BASE_URL}/compare", files=files, headers=headers)
-                    if res.status_code == 200:
-                        comp_data = res.json()
-                        st.success("Comparison Complete!")
-                        st.subheader("📈 AI Recovery Analysis")
-                        st.write(comp_data.get("analysis", "No details returned."))
-                    else:
-                        st.error(f"Comparison failed ({res.status_code}): {res.text}")
-                except Exception as e:
-                    st.error(f"Error connecting to backend: {e}")
+        with c2:
+            st.markdown("#### Week 2 (Current)")
+            w2_file = st.file_uploader("Upload Week 2 Photo", type=["jpg", "jpeg", "png"], key="w2_u")
+            if w2_file:
+                st.image(Image.open(w2_file), use_container_width=True)
+
+        if w1_file and w2_file:
+            if st.button("🔍 Compare Growth & Recovery Progress", type="primary", use_container_width=True):
+                with st.spinner("Analyzing progress..."):
+                    try:
+                        i1 = Image.open(w1_file)
+                        i2 = Image.open(w2_file)
+                        i1.thumbnail((800, 800))
+                        i2.thumbnail((800, 800))
+
+                        comp_model = genai.GenerativeModel(model_name="gemini-flash")
+                        prompt = "Compare these two plant images taken over consecutive weeks. Detail progress, leaf health recovery, growth changes, and actionable advice."
+
+                        res = comp_model.generate_content([prompt, i1, i2])
+
+                        st.success("Comparison Analysis Complete!")
+                        st.markdown("### 📈 AI Recovery Analysis")
+                        st.write(res.text)
+
+                    except Exception as e:
+                        st.error(f"Error running comparison: {e}")
