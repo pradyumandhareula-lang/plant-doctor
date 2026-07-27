@@ -230,7 +230,7 @@ else:
                         i1.thumbnail((800, 800))
                         i2.thumbnail((800, 800))
 
-                        comp_model = genai.GenerativeModel(model_name="gemini-flash")
+                        comp_model = genai.GenerativeModel(model_name="gemini-3.6-flash")
                         prompt = "Compare these two plant images taken over consecutive weeks. Detail progress, leaf health recovery, growth changes, and actionable advice."
 
                         res = comp_model.generate_content([prompt, i1, i2])
