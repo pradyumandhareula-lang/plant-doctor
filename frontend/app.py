@@ -11,16 +11,25 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling for green background, black text, and red buttons
+# Custom CSS styling for full green theme, white sidebar selectors with black text, red buttons, and top-right logout
 st.markdown("""
     <style>
-    /* Main background color for the application */
-    .stApp {
+    /* Full green background for the entire app and sidebar */
+    .stApp, [data-testid="stSidebar"] {
         background-color: #2e7d32 !important;
     }
     
+    /* Make the selectbox container in the sidebar white with black text */
+    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    [data-testid="stSidebar"] .stSelectbox span {
+        color: #000000 !important;
+    }
+
     /* Make all headings, markdown text, and labels black */
-    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown, .stSubheader {
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown, .stSubheader, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] span {
         color: #000000 !important;
     }
     
@@ -37,9 +46,11 @@ st.markdown("""
         color: white !important;
     }
 
-    /* Push the logout button up slightly */
+    /* Push the logout button up and align it to the far right near share */
     .logout-container {
-        margin-top: -15px;
+        margin-top: -35px;
+        display: flex;
+        justify-content: flex-end;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -86,7 +97,7 @@ else:
         ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
     )
 
-    # Top Header layout with Big Centered Title and higher-positioned Log Out button
+    # Top Header layout with Big Centered Title and top-right Log Out button
     header_col1, header_col2, header_col3 = st.columns([1, 6, 1])
     with header_col2:
         st.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🌿 Plant Doctor AI</h1>", unsafe_allow_html=True)
