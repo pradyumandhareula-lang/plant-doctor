@@ -1,190 +1,61 @@
-import sqlite3
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
-from pydantic import BaseModel
-from passlib.context import CryptContext
-from PIL import Image
 import io
-
-# Import your agent functions from agent.py
-from agent import analyze_plant_image, compare_weekly_photos
+import json
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from PIL import Image
+import google.generativeai as genai
 
 app = FastAPI()
 
-# Password Hashing Setup
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Configure your Gemini API key
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
 
+SYSTEM_PROMPT = """
+You are an expert botanical doctor AI. Analyze the uploaded plant image and identify:
+1. Plant species (common and scientific name). If no plant/flower/leaf is present, set species to 'Unknown'.
+2. Health status and confidence percentage (0-100%).
+3. Recommended treatment plan (bullet points for Sunlight, Watering, and Care).
 
-# ---------------------------------------------------------
-# 1. Database Initialization
-# ---------------------------------------------------------
-def init_db():
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
+Respond strictly in valid JSON format matching this schema:
+{
+    "species": "Plant Name",
+    "health_status": "Healthy / Diseased",
+    "confidence": 95,
+    "treatment_plan": [
+        "Sunlight: ...",
+        "Watering: ...",
+        "Care: ..."
+    ]
+}
+"""
 
-    # Users Table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
-        )
-    """)
-
-    # Plants Registry Table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS plants (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            plant_name TEXT NOT NULL,
-            species TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )
-    """)
-
-    # Diagnosis History Table
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS diagnosis_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            plant_id INTEGER NOT NULL,
-            diagnosis_result TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(plant_id) REFERENCES plants(id)
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-
-# Run database setup on startup
-init_db()
-
-
-def get_db():
-    conn = sqlite3.connect("database.db")
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-# ---------------------------------------------------------
-# 2. Pydantic Models for Request Validation
-# ---------------------------------------------------------
-class UserAuth(BaseModel):
-    username: str
-    password: str
-
-
-class PlantCreate(BaseModel):
-    user_id: int
-    plant_name: str
-    species: str
-
-
-# ---------------------------------------------------------
-# 3. Authentication Endpoints (/register, /login)
-# ---------------------------------------------------------
-@app.post("/register")
-def register(user: UserAuth):
-    hashed_password = pwd_context.hash(user.password)
-    conn = get_db()
-    cursor = conn.cursor()
+@app.post("/analyze")
+async def analyze_plant(file: UploadFile = File(...)):
     try:
-        cursor.execute(
-            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-            (user.username, hashed_password),
-        )
-        conn.commit()
-    except sqlite3.IntegrityError:
-        raise HTTPException(status_code=400, detail="Username already exists")
-    finally:
-        conn.close()
-    return {"message": "User registered successfully"}
-
-
-@app.post("/login")
-def login(user: UserAuth):
-    conn = get_db()
-    cursor = conn.cursor()
-    db_user = cursor
-    .execute("SELECT * FROM users WHERE username = ?", (user.username,))
-    .fetchone()
-    conn.close()
-
-    if not db_user or not pwd_context.verify(user.password, db_user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    return {
-        "message": "Login successful",
-        "user_id": db_user["id"],
-        "username": db_user["username"],
-    }
-
-
-# ---------------------------------------------------------
-# 4. Plant Registry Endpoints (/plants)
-# ---------------------------------------------------------
-@app.post("/plants")
-def add_plant(plant: PlantCreate):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO plants (user_id, plant_name, species) VALUES (?, ?, ?)",
-        (plant.user_id, plant.plant_name, plant.species),
-    )
-    conn.commit()
-    plant_id = cursor.lastrowid
-    conn.close()
-    return {"message": "Plant added successfully", "plant_id": plant_id}
-
-
-@app.get("/plants/{user_id}")
-def get_user_plants(user_id: int):
-    conn = get_db()
-    cursor = conn.cursor()
-    plants = cursor.execute(
-        "SELECT * FROM plants WHERE user_id = ?", (user_id,)
-    ).fetchall()
-    conn.close()
-    return {"plants": [dict(p) for p in plants]}
-
-
-# ---------------------------------------------------------
-# 5. Vision AI Endpoints (Diagnosis & Weekly Check-In)
-# ---------------------------------------------------------
-@app.post("/api/diagnose")
-async def diagnose(plant_id: int = Form(...), file: UploadFile = File(...)):
-    try:
+        # Read image
         contents = await file.read()
         image = Image.open(io.BytesIO(contents))
 
-        # Call AI model from agent.py
-        diagnosis_result = analyze_plant_image(image)
+        # COMPRESSION STEP: Resize image to speed up API processing time
+        image.thumbnail((800, 800))
 
-        # Save result to SQLite
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO diagnosis_history (plant_id, diagnosis_result) VALUES (?, ?)",
-            (plant_id, str(diagnosis_result)),
+        # Use gemini-1.5-flash for maximum speed and accuracy on vision tasks
+        model = genai.GenerativeModel(
+            model_name="gemini-3.6-flash",
+            system_instruction=SYSTEM_PROMPT
         )
-        conn.commit()
-        conn.close()
 
-        return {"success": True, "data": diagnosis_result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Generate response with structured JSON output
+        response = model.generate_content(
+            [image, "Analyze this plant image."],
+            generation_config={
+                "response_mime_type": "application/json",
+                "temperature": 0.2 # Lower temperature = faster, consistent accuracy
+            }
+        )
 
+        # Parse JSON response
+        result_data = json.loads(response.text)
+        return result_data
 
-@app.post("/api/compare")
-async def compare_photos(
-    previous_photo: UploadFile = File(...), current_photo: UploadFile = File(...)
-):
-    try:
-        prev_img = Image.open(io.BytesIO(await previous_photo.read()))
-        curr_img = Image.open(io.BytesIO(await current_photo.read()))
-
-        # Call dual-image comparison from agent.py
-        comparison_result = compare_weekly_photos(prev_img, curr_img)
-        return {"success": True, "data": comparison_result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
