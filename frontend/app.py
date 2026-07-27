@@ -241,3 +241,40 @@ else:
 
                     except Exception as e:
                         st.error(f"Error running comparison: {e}")
+st.markdown("---")
+st.subheader("💬 Chat with Plant Doctor Assistant")
+
+# Initialize chat history in session state if it doesn't exist
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display prior chat messages
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# Accept user input in chat
+if prompt := st.chat_input("Ask a question about your plant's care, watering schedule, or symptoms..."):
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Generate response from Gemini Flash
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            try:
+                model = genai.GenerativeModel("gemini-3.6-flash")
+                # Create a chat session leveraging history
+                chat = model.start_chat(history=[
+                    {"role": m["role"], "parts": [m["content"]]} 
+                    for m in st.session_state.messages[:-1]
+                ])
+                response = chat.send_message(prompt)
+                ai_response = response.text
+                st.markdown(ai_response)
+                
+                # Add assistant response to chat history
+                st.session_state.messages.append({"role": "assistant", "content": ai_response})
+            except Exception as e:
+                st.error(f"Error generating response: {e}")
