@@ -64,7 +64,6 @@ else:
             
             with col1:
                 st.image(uploaded_file, caption="Uploaded Plant", use_column_width=True)
-                # Button placed directly underneath the photo section
                 run_analysis = st.button("Run Botanical Analysis")
                 
             with col2:
@@ -133,32 +132,62 @@ else:
     # ==========================================
     elif page == "💬 Chat Assistant":
         st.title("💬 Plant Doctor Chat Assistant")
-        st.markdown("Have questions about plant care, watering schedules, or diseases? Chat with your AI assistant below!")
+        st.markdown("Have questions about your plant? **Please upload a photo below** and type your question to get AI-powered answers about the image!")
 
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
+        # Display chat history
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+                if isinstance(message["content"], list):
+                    for item in message["content"]:
+                        if isinstance(item, Image.Image):
+                            st.image(item, width=250)
+                        else:
+                            st.markdown(item)
+                else:
+                    st.markdown(message["content"])
 
-        if prompt := st.chat_input("Ask a question about your plant..."):
-            st.session_state.messages.append({"role": "user", "content": prompt})
+        # Dedicated column/uploader block inside the chat interface
+        st.markdown("---")
+        st.subheader("📷 Attach Photo for Chat Query")
+        chat_image = st.file_uploader("Upload a plant photo for the assistant to inspect", type=["jpg", "jpeg", "png"], key="chat_uploader")
+        
+        if chat_image:
+            st.image(chat_image, caption="Attached Photo Preview", width=200)
+
+        # Chat text input
+        if prompt := st.chat_input("Ask a question about the photo or your plant care..."):
+            # Construct content payload
+            content_to_send = [prompt]
+            display_content = [prompt]
+            
+            if chat_image:
+                img_obj = Image.open(chat_image)
+                content_to_send.append(img_obj)
+                display_content.append(img_obj)
+
+            st.session_state.messages.append({"role": "user", "content": display_content})
             with st.chat_message("user"):
                 st.markdown(prompt)
+                if chat_image:
+                    st.image(chat_image, width=250)
 
             with st.chat_message("assistant"):
-                with st.spinner("Thinking..."):
+                with st.spinner("Analyzing your photo and question..."):
                     try:
                         model = genai.GenerativeModel("gemini-3.6-flash")
                         
+                        # Rebuild history securely for the model
                         formatted_history = []
                         for m in st.session_state.messages[:-1]:
                             role = "model" if m["role"] == "assistant" else "user"
-                            formatted_history.append({"role": role, "parts": [m["content"]]})
+                            parts = m["content"] if isinstance(m["content"], list) else [m["content"]]
+                            formatted_history.append({"role": role, "parts": parts})
                         
                         chat = model.start_chat(history=formatted_history)
-                        response = chat.send_message(prompt)
+                        response = chat.send_message(content_to_send)
                         ai_response = response.text
                         
                         st.markdown(ai_response)
