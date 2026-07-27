@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling for full green theme, black text, red buttons, compact uploaders, and header fix
+# Custom CSS styling for full green theme, black text, red buttons, and compact sidebar logout
 st.markdown("""
     <style>
     /* Full green background for the entire app, main containers, and Streamlit header toolbar */
@@ -44,19 +44,6 @@ st.markdown("""
     div.stButton > button:hover, div.stButton > button[kind="primary"]:hover {
         background-color: #b71c1c !important;
         color: white !important;
-    }
-
-    /* Smaller Logout button styled in dark green to match theme */
-    div.logout-btn-class button {
-        background-color: #1b5e20 !important;
-        color: #ffffff !important;
-        padding: 2px 8px !important;
-        font-size: 0.8rem !important;
-        border-radius: 6px !important;
-        border: 1px solid #ffffff !important;
-    }
-    div.logout-btn-class button:hover {
-        background-color: #123814 !important;
     }
 
     /* File uploader custom styling: compact size, green background, white border, black text */
@@ -114,25 +101,22 @@ if not st.session_state.authenticated:
 # MAIN APP (Only visible after login)
 # ==========================================
 else:
-    # Sidebar Navigation
+    # Sidebar Navigation & Clean Logout Button placed securely inside the sidebar
     st.sidebar.title("🌿 Navigation")
     
     page = st.sidebar.selectbox(
         "Select Feature", 
         ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
     )
+    
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 👤 Account")
+    if st.sidebar.button("🚪 Logout", type="primary"):
+        st.session_state.authenticated = False
+        st.rerun()
 
-    # Top Header layout: Title on the left, smaller custom green Logout button positioned top-right near Share
-    col_title, col_logout = st.columns([5, 1])
-    with col_title:
-        st.markdown("<h1 style='font-size: 2.8rem; margin: 0;'>🌿 Plant Doctor AI</h1>", unsafe_allow_html=True)
-    with col_logout:
-        st.markdown("<div class='logout-btn-class' style='display: flex; justify-content: flex-end; align-items: center; padding-top: 15px;'>", unsafe_allow_html=True)
-        if st.button("🚪 Logout"):
-            st.session_state.authenticated = False
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-
+    # Clean centered Title in the main area (avoiding absolute positioning overlap issues)
+    st.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🌿 Plant Doctor AI</h1>", unsafe_allow_html=True)
     st.markdown("---")
 
     # ==========================================
