@@ -11,31 +11,30 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS styling for colors, large title, green theme, red action button, and higher logout button
+# Custom CSS styling for green background, black text, and red buttons
 st.markdown("""
     <style>
-    /* Green theme adjustments for headings */
-    h1, h2, h3, .green-title {
-        color: #2e7d32 !important;
+    /* Main background color for the application */
+    .stApp {
+        background-color: #2e7d32 !important;
     }
     
-    /* Primary buttons (Run Analysis / Compare / New Chat) styled in RED */
-    div.stButton > button[kind="primary"] {
+    /* Make all headings, markdown text, and labels black */
+    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown, .stSubheader {
+        color: #000000 !important;
+    }
+    
+    /* Primary / action buttons styled in RED */
+    div.stButton > button, div.stButton > button[kind="primary"] {
         background-color: #d32f2f !important;
         color: white !important;
         border-radius: 8px;
         font-weight: bold;
         border: none;
     }
-    div.stButton > button[kind="primary"]:hover {
+    div.stButton > button:hover, div.stButton > button[kind="primary"]:hover {
         background-color: #b71c1c !important;
         color: white !important;
-    }
-    
-    /* Standard button styling */
-    div.stButton > button {
-        border-radius: 8px;
-        font-weight: 500;
     }
 
     /* Push the logout button up slightly */
