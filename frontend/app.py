@@ -134,7 +134,7 @@ else:
 
                         # Call Gemini Model
                         model = genai.GenerativeModel(
-                            model_name="gemini-flash",
+                            model_name="gemini-3.6-flash",
                             system_instruction=SYSTEM_PROMPT
                         )
                         
