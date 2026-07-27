@@ -27,7 +27,6 @@ if not st.session_state.authenticated:
         submit_button = st.form_submit_button("Log In")
 
         if submit_button:
-            # Simple demo check (You can customize these credentials)
             if username == "admin" and password == "password123":
                 st.session_state.authenticated = True
                 st.success("Login successful! Loading app...")
@@ -42,7 +41,6 @@ else:
     # Sidebar Navigation
     st.sidebar.title("🌿 Plant Doctor AI")
     
-    # Logout button in sidebar
     if st.sidebar.button("Log Out"):
         st.session_state.authenticated = False
         st.rerun()
@@ -66,10 +64,12 @@ else:
             
             with col1:
                 st.image(uploaded_file, caption="Uploaded Plant", use_column_width=True)
+                # Button placed directly underneath the photo section
+                run_analysis = st.button("Run Botanical Analysis")
                 
             with col2:
                 st.subheader("Results")
-                if st.button("Run Botanical Analysis"):
+                if run_analysis:
                     with st.spinner("Analyzing plant..."):
                         try:
                             img = Image.open(uploaded_file)
