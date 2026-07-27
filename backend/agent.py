@@ -1,104 +1,79 @@
 import os
 import json
 import io
+import google.generativeai as genai
 from PIL import Image
 
-def get_gemini_api_key():
-    # 1. Try reading directly from Streamlit secrets
+# 1. Configure Gemini API Key
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+
+# 2. Updated Model Identifier (gemini-2.5-flash)
+MODEL_NAME = "gemini-2.5-flash"
+model = genai.GenerativeModel(MODEL_NAME)
+
+
+def analyze_plant_image(image_bytes, temperature=0.2):
+    """
+    Analyzes a plant/leaf image and returns diagnostic findings as JSON.
+    """
     try:
-        import streamlit as st
-        if "GEMINI_API_KEY" in st.secrets:
-            return st.secrets["GEMINI_API_KEY"]
-    except Exception:
-        pass
-    # 2. Try OS environment variable
-    return os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        # Convert raw bytes into a PIL Image for Gemini Vision
+        image = Image.open(io.BytesIO(image_bytes))
 
+        prompt = """
+        You are an expert plant pathologist AI. 
+        Examine the provided image of a plant/leaf carefully and perform a diagnostic assessment.
 
-def analyze_plant_image(image_bytes: bytes = None, file_bytes: bytes = None, *args, temperature=0.2):
-    data = image_bytes or file_bytes
-    if data is None and args:
-        data = args[0]
-        
-    api_key = get_gemini_api_key()
-    if not api_key:
-        # DO NOT return fake JSON data here — raise an exception so the frontend renders a true error state
-        raise ValueError("GEMINI_API_KEY was not found in Streamlit secrets or Environment Variables.")
+        Return ONLY a JSON object containing the exact following keys:
+        1. "target_system_id": The identified plant species and/or diagnosed disease condition (e.g., "Tomato - Early Blight").
+        2. "core_target_confidence": Confidence level of your diagnosis (e.g., "95%" or "High").
+        3. "treatment_plan": Clear, step-by-step instructions for care, organic treatment, or chemical remedies.
 
-    try:
-        from google import genai
-        from google.genai import types
+        Do not wrap the response in markdown backticks outside of valid JSON formatting.
+        """
 
-        client = genai.Client(api_key=api_key)
-        pil_img = Image.open(io.BytesIO(data))
-
-        prompt = """You are an expert plant pathologist AI. Analyze the provided image and respond ONLY with a valid JSON object matching this structure:
-{
-  "target_system_id": "Detected Plant Species / Name",
-  "core_target_confidence": "Confidence level (e.g., 95%)",
-  "treatment_plan": "A detailed markdown treatment plan and diagnosis."
-}"""
-
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=[prompt, pil_img],
-            config=types.GenerateContentConfig(
-                temperature=temperature
+        response = model.generate_content(
+            [prompt, image],
+            generation_config=genai.types.GenerationConfig(
+                temperature=temperature,
+                response_mime_type="application/json",
             )
         )
 
-        raw_text = response.text.strip()
-        if raw_text.startswith("```json"):
-            raw_text = raw_text[7:]
-        if raw_text.startswith("```"):
-            raw_text = raw_text[3:]
-        if raw_text.endswith("```"):
-            raw_text = raw_text[:-3]
+        return json.loads(response.text)
 
-        return json.loads(raw_text.strip())
-
-    except Exception as err:
-        # Re-raise the exception so FastAPI/Streamlit handles it as a real error state
-        raise RuntimeError(f"API Call Failed: {str(err)}") from err
+    except json.JSONDecodeError:
+        # Fallback if raw text returned instead of clean JSON
+        return {
+            "target_system_id": "Analysis Completed",
+            "core_target_confidence": "Medium",
+            "treatment_plan": response.text if 'response' in locals() else "Unable to parse diagnostic response."
+        }
+    except Exception as e:
+        raise RuntimeError(f"API Call Failed: {str(e)}")
 
 
-def compare_weekly_photos(prev_bytes: bytes, curr_bytes: bytes):
+def compare_weekly_photos(prev_bytes, curr_bytes):
     """
-    Evaluates weekly plant progress comparing two uploaded images.
-    Addresses evaluator requirements for photo progress tracking.
+    Compares two weekly photos to evaluate plant recovery or progress.
     """
-    api_key = get_gemini_api_key()
-    if not api_key:
-        raise ValueError("GEMINI_API_KEY was not found.")
-
     try:
-        from google import genai
-
-        client = genai.Client(api_key=api_key)
         prev_img = Image.open(io.BytesIO(prev_bytes))
         curr_img = Image.open(io.BytesIO(curr_bytes))
 
-        prompt = """You are an expert plant pathologist evaluating a plant's progress over time.
-Image 1 is from a previous check-in.
-Image 2 is from the current check-in.
+        prompt = """
+        You are an expert plant pathologist evaluating treatment progress over time.
+        - Image 1 represents Week 1 (Previous).
+        - Image 2 represents Week 2 (Current).
 
-Compare both images and provide a progress report answering:
-1. Has the plant's condition improved, deteriorated, or remained the same?
-2. What visible changes occurred (e.g., leaf discoloration, new growth, wilting)?
-3. What adjustments should be made to the current treatment plan?
-"""
+        Compare both photos and write a concise evaluation report:
+        1. Visual health changes or leaf improvement.
+        2. Status of pests, rot, or fungal spots (spread, reduced, or controlled).
+        3. Clear recommendation on whether to continue or adjust current care.
+        """
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=[prompt, prev_img, curr_img]
-        )
-
+        response = model.generate_content([prompt, prev_img, curr_img])
         return response.text
 
-    except Exception as err:
-        raise RuntimeError(f"Photo comparison failed: {str(err)}") from err
-
-
-# Backwards compatibility aliases
-analyze_plant_image_with_openai = analyze_plant_image
-analyze_plant_image_with_gemini = analyze_plant_image
+    except Exception as e:
+        raise RuntimeError(f"Comparison failed: {str(e)}")
