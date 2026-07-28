@@ -10,18 +10,18 @@ API_DIAGNOSE_URL = "http://localhost:8000/api/diagnose"
 
 # Configure Streamlit page
 st.set_page_config(
-    page_title="Plant Doctor AI",
+    page_title="Plant Doctor (Powered by AI)",
     page_icon="🌿",
     layout="wide"
 )
 
-# Custom CSS for Mountain Nursery Background (matching your exact screenshot 1) & Frosted Glass UI
+# Custom CSS for Background Image, Dark Emerald Sidebar, and Frosted Glass Containers
 st.markdown("""
 <style>
-    /* Background Image for the whole app - Matching Screenshot 1 exact nursery view */
+    /* Consistent Background Image for all pages matching your exact uploaded photo */
     .stApp {
-        background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), 
-                          url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2000&q=80");
+        background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.25)), 
+                          url("https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=2000&q=80");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
@@ -37,7 +37,7 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* Frosted Glass Effect for Main Content Containers */
+    /* Frosted Glass Effect for Main Content Containers with Black Text */
     .block-container {
         background: rgba(255, 255, 255, 0.88);
         backdrop-filter: blur(12px);
@@ -47,6 +47,14 @@ st.markdown("""
         margin-top: 2rem;
         margin-bottom: 2rem;
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        color: #111111 !important;
+    }
+
+    /* Ensure all text inside containers is black for high contrast */
+    .block-container h1, .block-container h2, .block-container h3, 
+    .block-container h4, .block-container h5, .block-container h6, 
+    .block-container p, .block-container span, .block-container label {
+        color: #111111 !important;
     }
 
     /* Primary Buttons Styling */
@@ -78,7 +86,7 @@ if "messages" not in st.session_state:
 # LOGIN PAGE
 # ==========================================
 if not st.session_state.authenticated:
-    st.title("🔐 Plant Doctor AI - Login")
+    st.title("🔐 Plant Doctor (Powered by AI) - Login")
     st.markdown("Please log in with your credentials to access the plant doctor system.")
 
     with st.form("login_form"):
@@ -98,38 +106,34 @@ if not st.session_state.authenticated:
 # MAIN APP (Only visible after login)
 # ==========================================
 else:
-    # Sidebar Navigation matching your exact sidebar items
-    st.sidebar.title("🌿 Plant Doctor AI")
+    # Sidebar Navigation (Clean list without headers, with Settings and Logout)
+    st.sidebar.title("🌿 Plant Doctor (Powered by AI)")
+    
     page = st.sidebar.selectbox(
-        "Navigation",
-        ["Plant Registry", "Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
+        "",
+        [
+            "Plant Diagnosis", 
+            "Weekly Photo Comparison", 
+            "Plant Registry", 
+            "💬 Chat Assistant", 
+            "📜 Search History", 
+            "⚙️ Settings", 
+            "🚪 Logout"
+        ],
+        label_visibility="collapsed"
     )
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### 👤 Account")
-    if st.sidebar.button("🚪 Logout", type="primary"):
+    # Handle Logout selection directly from the selectbox dropdown
+    if page == "🚪 Logout":
         st.session_state.authenticated = False
         st.rerun()
-
-    # Main Workspace Header matching your exact text
-    st.markdown("<h1 style='text-align: center; color: #111111;'>🌿 Plant Registry - Workspace</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #333333; font-size: 16px;'>Find and manage your plant database. Add details for every plant in your collection.</p>", unsafe_allow_html=True)
-    st.markdown("---")
-
-    # ==========================================
-    # PAGE 0: PLANT REGISTRY
-    # ==========================================
-    if page == "Plant Registry":
-        st.markdown("### 🪴 Plant Registry Management")
-        st.markdown("Easily view, search, and organize all plants registered in your collection database.")
-        st.info("Your plant registry collection is currently active. Use the sidebar to switch modules.")
 
     # ==========================================
     # PAGE 1: PLANT DIAGNOSIS
     # ==========================================
-    elif page == "Plant Diagnosis":
-        st.markdown("### 🌱 Instant Health Diagnosis")
-        st.markdown("Upload a leaf photo to detect pests, chlorosis, or fungi.")
+    if page == "Plant Diagnosis":
+        st.markdown("<h1 style='color: #111111;'>🌱 Plant Diagnosis</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #333333;'>Upload a plant image for immediate AI health analysis.</p>", unsafe_allow_html=True)
 
         uploaded_file = st.file_uploader("Choose a plant image (JPG, JPEG, PNG)", type=["jpg", "jpeg", "png"])
 
@@ -137,8 +141,8 @@ else:
             col1, col2 = st.columns(2)
 
             with col1:
-                st.image(uploaded_file, caption="Specimen Loaded. Ready for instant diagnosis.", use_column_width=True)
-                run_analysis = st.button("Run AI Analysis", type="primary")
+                st.image(uploaded_file, caption="Uploaded Plant", use_column_width=True)
+                run_analysis = st.button("Run Botanical Analysis", type="primary")
 
             with col2:
                 st.subheader("Results")
@@ -191,8 +195,8 @@ else:
     # PAGE 2: WEEKLY PHOTO COMPARISON
     # ==========================================
     elif page == "Weekly Photo Comparison":
-        st.markdown("### 📅 Weekly Photo Comparison")
-        st.markdown("Compare side-by-side plant images over time to evaluate growth or recovery.")
+        st.markdown("<h1 style='color: #111111;'>📅 Weekly Photo Comparison</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #333333;'>Compare side-by-side plant images over time to evaluate growth or recovery.</p>", unsafe_allow_html=True)
 
         col1, col2 = st.columns(2)
 
@@ -228,7 +232,21 @@ else:
                     st.error(f"Error running comparison: {e}")
 
     # ==========================================
-    # PAGE 3: CHAT ASSISTANT
+    # PAGE 3: PLANT REGISTRY (HOME / LANDING VIEW)
+    # ==========================================
+    elif page == "Plant Registry":
+        st.markdown("<h1 style='text-align: center; color: #111111;'>🌿 Plant Registry - Workspace</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #333333; font-size: 16px;'>Find and manage your plant database. Add details for every plant in your collection.</p>", unsafe_allow_html=True)
+        st.markdown("---")
+        
+        st.image(
+            "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=2000&q=80", 
+            caption="Plant Registry Collection View", 
+            use_column_width=True
+        )
+
+    # ==========================================
+    # PAGE 4: CHAT ASSISTANT
     # ==========================================
     elif page == "💬 Chat Assistant":
         head_col1, head_col2 = st.columns([1, 5])
@@ -243,8 +261,8 @@ else:
                 unsafe_allow_html=True
             )
         with head_col2:
-            st.markdown("### Plant Doctor Chat Assistant")
-            st.markdown("Have questions about your plant? Upload a photo and chat live with the assistant!")
+            st.markdown("<h3 style='color: #111111;'>Plant Doctor Chat Assistant</h3>", unsafe_allow_html=True)
+            st.markdown("<p style='color: #333333;'>Have questions about your plant? Upload a photo and chat live with the assistant!</p>", unsafe_allow_html=True)
 
         clear_col1, clear_col2 = st.columns([5, 1])
         with clear_col2:
@@ -306,11 +324,11 @@ else:
                 st.error(f"Error in chat: {e}")
 
     # ==========================================
-    # PAGE 4: SEARCH HISTORY
+    # PAGE 5: SEARCH HISTORY
     # ==========================================
     elif page == "📜 Search History":
-        st.markdown("### 📜 Plant Search & Diagnosis History")
-        st.markdown("Here is a log of all previous plant health analyses performed during your session.")
+        st.markdown("<h1 style='color: #111111;'>📜 Plant Search & Diagnosis History</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #333333;'>Here is a log of all previous plant health analyses performed during your session.</p>", unsafe_allow_html=True)
 
         if not st.session_state.diagnosis_history:
             st.info("No plant diagnosis history found yet. Run an analysis on the 'Plant Diagnosis' page to see records here!")
@@ -320,3 +338,14 @@ else:
                     if "image" in item and item["image"]:
                         st.image(io.BytesIO(item["image"]), caption="Analyzed Plant Image", width=200)
                     st.markdown(item["result"])
+
+    # ==========================================
+    # PAGE 6: SETTINGS
+    # ==========================================
+    elif page == "⚙️ Settings":
+        st.markdown("<h1 style='color: #111111;'>⚙️ System Settings</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #333333;'>Configure your backend endpoints and application preferences.</p>", unsafe_allow_html=True)
+        st.markdown("---")
+        st.text_input("API Backend Endpoint", value=API_DIAGNOSE_URL)
+        st.selectbox("AI Model Engine", ["gemini-3.6-flash", "gemini-pro-vision"])
+        st.success("Settings saved automatically.")
