@@ -15,13 +15,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for Mountain Nursery Background & Frosted Glass UI matching screenshot style
+# Custom CSS for Mountain Nursery Background (matching your exact screenshot 1) & Frosted Glass UI
 st.markdown("""
 <style>
-    /* Background Image for the whole app */
+    /* Background Image for the whole app - Matching Screenshot 1 exact nursery view */
     .stApp {
-        background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
-                          url("https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=2000&q=80");
+        background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), 
+                          url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2000&q=80");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
@@ -39,7 +39,7 @@ st.markdown("""
 
     /* Frosted Glass Effect for Main Content Containers */
     .block-container {
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.88);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         border-radius: 16px;
@@ -98,11 +98,11 @@ if not st.session_state.authenticated:
 # MAIN APP (Only visible after login)
 # ==========================================
 else:
-    # Sidebar Navigation matching your layout
+    # Sidebar Navigation matching your exact sidebar items
     st.sidebar.title("🌿 Plant Doctor AI")
     page = st.sidebar.selectbox(
         "Navigation",
-        ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
+        ["Plant Registry", "Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
     )
 
     st.sidebar.markdown("---")
@@ -111,15 +111,23 @@ else:
         st.session_state.authenticated = False
         st.rerun()
 
-    # Main Workspace Header matching the requested wording from your second photo
-    st.markdown("<h1 style='text-align: center; color: #111111;'>🌿 Plant Doctor AI Workspace</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #333333; font-size: 16px;'>Your interactive botanical assistant. Detect diseases, compare weekly progress, and chat with AI in real-time.</p>", unsafe_allow_html=True)
+    # Main Workspace Header matching your exact text
+    st.markdown("<h1 style='text-align: center; color: #111111;'>🌿 Plant Registry - Workspace</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #333333; font-size: 16px;'>Find and manage your plant database. Add details for every plant in your collection.</p>", unsafe_allow_html=True)
     st.markdown("---")
+
+    # ==========================================
+    # PAGE 0: PLANT REGISTRY
+    # ==========================================
+    if page == "Plant Registry":
+        st.markdown("### 🪴 Plant Registry Management")
+        st.markdown("Easily view, search, and organize all plants registered in your collection database.")
+        st.info("Your plant registry collection is currently active. Use the sidebar to switch modules.")
 
     # ==========================================
     # PAGE 1: PLANT DIAGNOSIS
     # ==========================================
-    if page == "Plant Diagnosis":
+    elif page == "Plant Diagnosis":
         st.markdown("### 🌱 Instant Health Diagnosis")
         st.markdown("Upload a leaf photo to detect pests, chlorosis, or fungi.")
 
