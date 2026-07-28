@@ -4,6 +4,7 @@ from PIL import Image
 import google.generativeai as genai
 import datetime
 import io
+import base64
 
 # Backend API Endpoint Configuration
 API_DIAGNOSE_URL = "http://localhost:8000/api/diagnose"
@@ -14,6 +15,65 @@ st.set_page_config(
     page_icon="🌿",
     layout="wide"
 )
+
+# Function to convert your local image file to base64 string
+def get_base64_of_bin_file(bin_file):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+# Replace "your_image_name.jpg" with the exact filename of your image saved in your project folder
+img_base64 = get_base64_of_bin_file("your_image_name.jpg")
+
+# Custom CSS with your local wallpaper image and frosted glass UI
+st.markdown(f"""
+<style>
+    /* Wallpaper Background Image for the whole app */
+    .stApp {{
+        background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+                          url("data:image/jpg;base64,{img_base64}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }}
+
+    /* Sidebar Styling (Dark Emerald Theme) */
+    [data-testid="stSidebar"] {{
+        background-color: #0d2818;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }}
+    
+    [data-testid="stSidebar"] * {{
+        color: #ffffff !important;
+    }}
+
+    /* Frosted Glass Effect for Main Content Containers */
+    .block-container {{
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 2.5rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }}
+
+    /* Primary Buttons Styling */
+    .stButton>button[kind="primary"] {{
+        background-color: #d90429 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px;
+        font-weight: bold;
+    }}
+    
+    .stButton>button[kind="primary"]:hover {{
+        background-color: #ef233c !important;
+    }}
+</style>
+""", unsafe_allow_html=True)
+
 
 # Custom CSS for Full-Screen Unbroken Background, Transparent Floating Card Layout, and Fixed Photo Selector Placement
 st.markdown("""
