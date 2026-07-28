@@ -38,7 +38,7 @@ async def analyze_plant(file: UploadFile = File(...)):
         # COMPRESSION STEP: Resize image to speed up API processing time
         image.thumbnail((800, 800))
 
-        # Use gemini-1.5-flash for maximum speed and accuracy on vision tasks
+        # Use gemini-3.6-flash for maximum speed and accuracy on vision tasks
         model = genai.GenerativeModel(
             model_name="gemini-3.6-flash",
             system_instruction=SYSTEM_PROMPT
