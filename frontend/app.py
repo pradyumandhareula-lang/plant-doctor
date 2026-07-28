@@ -21,7 +21,7 @@ st.markdown("""
     /* Full-screen unbroken background using the nursery mountain photo across the entire screen */
     .stApp {
         background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), 
-                          url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2500&q=80");
+                        url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2500&q=80");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
@@ -287,7 +287,7 @@ elif page == "💬 Chat Assistant":
             st.rerun()
 
     for message in st.session_state.messages:
-        avatar_icon = "🎧🤖" if message["role"] == "assistant" else None
+        avatar_icon = "🤖" if message["role"] == "assistant" else None
         with st.chat_message(message["role"], avatar=avatar_icon):
             if isinstance(message["content"], list):
                 for item in message["content"]:
@@ -333,7 +333,7 @@ elif page == "💬 Chat Assistant":
             response = chat.send_message(content_to_send)
             ai_response = response.text
 
-            with st.chat_message("assistant", avatar="🎧🤖"):
+            with st.chat_message("assistant", avatar="🤖"):
                 st.markdown(ai_response)
             st.session_state.messages.append({"role": "assistant", "content": ai_response})
         except Exception as e:
