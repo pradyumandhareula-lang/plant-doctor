@@ -58,4 +58,4 @@ async def analyze_plant(file: UploadFile = File(...)):
         return result_data
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    raise HTTPException(status_code=500, detail={"error": True, "message": str(e)})
