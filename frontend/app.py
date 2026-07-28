@@ -32,7 +32,6 @@ except:
     # Reliable high-resolution nursery wallpaper fallback
     bg_css = 'url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2500&q=80")'
 
-# Custom CSS for Clear Wallpaper Background and Transparent Glass Layout
 st.markdown(f"""
 <style>
     /* Full-screen clear wallpaper background with no dark tint */
