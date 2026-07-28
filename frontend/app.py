@@ -104,7 +104,7 @@ page = st.sidebar.radio(
         "💬 Chat Assistant", 
         "📜 Search History", 
         "⚙️ Settings", 
-        "🚪 Logout"
+        
     ],
     label_visibility="collapsed"
 )
@@ -136,14 +136,7 @@ if not st.session_state.authenticated:
     
     st.stop() # Halts execution completely until logged in
 
-# ==========================================
-# MAIN APP SIDEBAR (Only runs if authenticated)
-# ==========================================
-st.sidebar.title("🌿 Plant Doctor AI")
-page = st.sidebar.selectbox(
-    "Navigation",
-    ["🏠 Home", "🌱 Plant Diagnosis", "📅 Weekly Photo Comparison", "🌿 Plant Registry", "💬 Chat Assistant", "📜 Search History"]
-)
+
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 👤 Account")
