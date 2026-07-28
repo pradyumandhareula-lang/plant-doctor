@@ -32,46 +32,46 @@ except:
     # Reliable high-resolution nursery wallpaper fallback
     bg_css = 'url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2500&q=80")'
 
+# Custom CSS for Clear Wallpaper Background with Dark Tint Overlay
 st.markdown(f"""
 <style>
-    /* Full-screen clear wallpaper background with no dark tint */
+    /* Full-screen wallpaper background with a darker transparent tint */
     .stApp {{
-        background-image: {bg_css};
+        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), {bg_css};
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
     }}
     
-    /* Sidebar Styling (Semi-transparent dark emerald) */
+    /* Sidebar Styling (Dark Emerald Theme) */
     [data-testid="stSidebar"] {{
-        background-color: rgba(13, 40, 24, 0.6) !important;
-        backdrop-filter: blur(10px);
-        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        background-color: #0d2818 !important;
+        border-right: 2px solid rgba(255, 255, 255, 0.2);
     }}
     
     [data-testid="stSidebar"] * {{
         color: #ffffff !important;
     }}
 
-    /* Fully Transparent Frosted Glass Card for Main Content */
+    /* Solid Frosted Glass Floating Card for Main Content */
     .block-container {{
-        background: rgba(255, 255, 255, 0.2) !important;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.90) !important;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         border-radius: 16px;
         padding: 2.5rem 3rem;
         margin-top: 2rem;
         margin-bottom: 2rem;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.5);
     }}
 
-    /* Text styling for readability over transparent background */
+    /* High contrast dark text styling inside containers */
     .block-container h1, .block-container h2, .block-container h3, 
     .block-container h4, .block-container h5, .block-container h6, 
     .block-container p, .block-container span, .block-container label, .block-container li {{
-        color: #ffffff !important;
-        text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8);
+        color: #111111 !important;
+        text-shadow: none !important;
     }}
 
     /* Primary Action Buttons Styling */
