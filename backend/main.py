@@ -7,7 +7,7 @@ import google.generativeai as genai
 app = FastAPI()
 
 # Configure your Gemini API key
-genai.configure(api_key="YOUR_GEMINI_API_KEY")
+genai.configure(api_key=st.secrets["GEMINI_API_KEY")
 
 SYSTEM_PROMPT = """
 You are an expert botanical doctor AI. Analyze the uploaded plant image and identify:
