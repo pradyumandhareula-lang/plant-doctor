@@ -284,15 +284,52 @@ elif page == "📅 Weekly Photo Comparison":
 # PAGE 3: PLANT REGISTRY
 # ==========================================
 elif page == "🌿 Plant Registry":
-    st.markdown("<h1 style='text-align: center;'>🌿 Plant Registry</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Find and manage your plant database. Add details for every plant in your collection.</p>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #111111;'>🌿 Plant Registry - Workspace</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #333333;'>Easily find, manage, and diagnose your plant collection database.</p>", unsafe_allow_html=True)
     st.markdown("---")
+
+    # Initialize registry database in session state if it doesn't exist
+    if "plant_registry" not in st.session_state:
+        st.session_state.plant_registry = []
+
+    # Form to add a new plant
+    with st.form("registry_form"):
+        st.markdown("### Add New Plant to Collection")
+        col1, col2 = st.columns(2)
+        with col1:
+            plant_name = st.text_input("Plant Name / Nickname")
+            species = st.text_input("Plant Species")
+        with col2:
+            watering_freq = st.selectbox("Watering Frequency", ["Every 2 days", "Weekly", "Bi-weekly", "Monthly"])
+            date_added = st.date_input("Date Added")
+        
+        notes = st.text_area("Care Notes & Observations")
+        submit_plant = st.form_submit_button("Add to Registry", type="primary")
+
+    if submit_plant:
+        if plant_name.strip():
+            st.session_state.plant_registry.append({
+                "name": plant_name,
+                "species": species,
+                "watering": watering_freq,
+                "date": str(date_added),
+                "notes": notes
+            })
+            st.success(f"Successfully added {plant_name} to your registry!")
+        else:
+            st.error("Please provide at least a Plant Name.")
+
+    st.markdown("---")
+    st.markdown("### 📋 Your Plant Collection Database")
     
-    st.image(
-        "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=2000&q=80", 
-        caption="Plant Registry Collection View", 
-        use_column_width=True
-    )
+    if not st.session_state.plant_registry:
+        st.info("No plants registered yet. Fill out the form above to add your first plant!")
+    else:
+        for idx, plant in enumerate(st.session_state.plant_registry, 1):
+            with st.expander(f"🪴 {plant['name']} ({plant['species'] or 'Unknown Species'})"):
+                st.write(f"**Watering Schedule:** {plant['watering']}")
+                st.write(f"**Date Added:** {plant['date']}")
+                st.write(f"**Notes:** {plant['notes'] if plant['notes'] else 'None'}")
 
 # ==========================================
 # PAGE 4: CHAT ASSISTANT
