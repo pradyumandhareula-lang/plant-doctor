@@ -120,7 +120,7 @@ if page == "🚪 Logout":
 # ==========================================
 # AUTHENTICATION & NAVIGATION GATE
 # ==========================================
-if not st.session_state.authenticated:
+if not st.session_state.get("authenticated", False):
     st.title("🔒 Plant Doctor AI - Login")
     st.markdown("Please log in with your credentials to access the plant doctor system.")
 
