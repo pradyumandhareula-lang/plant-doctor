@@ -3,6 +3,7 @@ import json
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from PIL import Image
 import google.generativeai as genai
+import streamlit as st
 
 app = FastAPI()
 
