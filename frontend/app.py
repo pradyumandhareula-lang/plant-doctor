@@ -1,73 +1,70 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
 from PIL import Image
-import os
-from datetime import datetime
+import google.generativeai as genai
+import datetime
+import io
 
-# Configure page settings
+# Backend API Endpoint Configuration
+API_DIAGNOSE_URL = "http://localhost:8000/api/diagnose"
+
+# Configure Streamlit page
 st.set_page_config(
     page_title="Plant Doctor AI",
     page_icon="🌿",
     layout="wide"
 )
 
-# Custom CSS styling for full green theme, black text, red buttons, and compact sidebar logout
+# Custom CSS for Mountain Nursery Background & Frosted Glass UI matching screenshot style
 st.markdown("""
 <style>
-    /* Full green background for the entire app, main containers, and Streamlit header toolbar */
-    .stApp, [data-testid="stSidebar"], [data-testid="stMain"], [data-testid="block-container"], header[data-testid="stHeader"] {
-        background-color: #2e7d32 !important;
+    /* Background Image for the whole app */
+    .stApp {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+                          url("https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=2000&q=80");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    /* Sidebar Styling (Dark Emerald Theme) */
+    [data-testid="stSidebar"] {
+        background-color: #0d2818;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    /* Make the selectbox container in the sidebar white with black text */
-    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
     }
-    [data-testid="stSidebar"] .stSelectbox span {
-        color: #000000 !important;
+
+    /* Frosted Glass Effect for Main Content Containers */
+    .block-container {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        padding: 2.5rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
     }
-    
-    /* Make all headings, markdown text, and labels black */
-    h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown, .stSubheader, [data-testid="stSidebar"] h1, [data-testid="stSidebar"] span {
-        color: #000000 !important;
-    }
-    
-    /* Primary / action buttons styled in RED */
-    div.stButton > button, div.stButton > button[kind="primary"] {
-        background-color: #d32f2f !important;
+
+    /* Primary Buttons Styling */
+    .stButton>button[kind="primary"] {
+        background-color: #d90429 !important;
         color: white !important;
+        border: none !important;
         border-radius: 8px;
         font-weight: bold;
-        border: none;
-    }
-    div.stButton > button:hover, div.stButton > button[kind="primary"]:hover {
-        background-color: #b71c1c !important;
-        color: white !important;
     }
     
-    /* File uploader custom styling: compact size, green background, white border, black text */
-    [data-testid="stFileUploader"] {
-        max-width: 400px !important;
-    }
-    [data-testid="stFileUploader"] section {
-        background-color: #2e7d32 !important;
-        border: 2px solid #ffffff !important;
-        border-radius: 10px !important;
-        padding: 10px !important;
-    }
-    [data-testid="stFileUploader"] section * {
-        color: #000000 !important;
-    }
-    [data-testid="stFileUploader"] button {
-        background-color: #d32f2f !important;
-        color: #ffffff !important;
-        border: none !important;
+    .stButton>button[kind="primary"]:hover {
+        background-color: #ef233c !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state variables
+# Initialize Session State variables if they don't exist
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -77,13 +74,9 @@ if "diagnosis_history" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "registered_plants" not in st.session_state:
-    st.session_state.registered_plants = []
-
-
-# ============================================
+# ==========================================
 # LOGIN PAGE
-# ============================================
+# ==========================================
 if not st.session_state.authenticated:
     st.title("🔐 Plant Doctor AI - Login")
     st.markdown("Please log in with your credentials to access the plant doctor system.")
@@ -101,16 +94,15 @@ if not st.session_state.authenticated:
             else:
                 st.error("Invalid username or password. Try username: admin, password: password123")
 
-# ============================================
+# ==========================================
 # MAIN APP (Only visible after login)
-# ============================================
+# ==========================================
 else:
-    # Sidebar Navigation & Clean Logout Button
-    st.sidebar.title("🌿 Navigation")
-
+    # Sidebar Navigation matching your layout
+    st.sidebar.title("🌿 Plant Doctor AI")
     page = st.sidebar.selectbox(
-        "Select Feature",
-        ["Plant Diagnosis", "Weekly Photo Comparison", "Plant Registry", "💬 Chat Assistant", "📜 Search History"]
+        "Navigation",
+        ["Plant Diagnosis", "Weekly Photo Comparison", "💬 Chat Assistant", "📜 Search History"]
     )
 
     st.sidebar.markdown("---")
@@ -119,62 +111,77 @@ else:
         st.session_state.authenticated = False
         st.rerun()
 
-    # Clean centered Title in the main area
-    st.markdown("<h1 style='text-align: center; font-size: 2.8rem;'>🌿 Plant Doctor AI</h1>", unsafe_allow_html=True)
+    # Main Workspace Header matching the requested wording from your second photo
+    st.markdown("<h1 style='text-align: center; color: #111111;'>🌿 Plant Doctor AI Workspace</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #333333; font-size: 16px;'>Your interactive botanical assistant. Detect diseases, compare weekly progress, and chat with AI in real-time.</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # ============================================
+    # ==========================================
     # PAGE 1: PLANT DIAGNOSIS
-    # ============================================
+    # ==========================================
     if page == "Plant Diagnosis":
-        st.markdown("### 🌿 Plant Health Diagnosis")
-        st.markdown("Upload a plant image for immediate AI health analysis.")
+        st.markdown("### 🌱 Instant Health Diagnosis")
+        st.markdown("Upload a leaf photo to detect pests, chlorosis, or fungi.")
 
         uploaded_file = st.file_uploader("Choose a plant image (JPG, JPEG, PNG)", type=["jpg", "jpeg", "png"])
 
         if uploaded_file is not None:
-            plant_registry = st.text_input("Plant Registry ID / Name", placeholder="e.g., REG-001")
-            
             col1, col2 = st.columns(2)
 
             with col1:
-                st.image(uploaded_file, caption="Uploaded Plant", use_column_width=True)
-                run_analysis = st.button("Run Botanical Analysis", type="primary")
+                st.image(uploaded_file, caption="Specimen Loaded. Ready for instant diagnosis.", use_column_width=True)
+                run_analysis = st.button("Run AI Analysis", type="primary")
 
             with col2:
                 st.subheader("Results")
                 if run_analysis:
                     with st.spinner("Analyzing plant..."):
+                        analysis_result = ""
+                        
+                        # 1. POST request to /api/diagnose endpoint
                         try:
-                            img = Image.open(uploaded_file)
-                            model = genai.GenerativeModel("gemini-3.6-flash")
+                            uploaded_file.seek(0)
+                            files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
+                            response = requests.post(API_DIAGNOSE_URL, files=files, timeout=10)
 
-                            prompt = (
-                                "Analyze this plant image. Provide the detected species name, "
-                                "health status (Healthy/Diseased/Stressed), confidence percentage, "
-                                "and a recommended treatment plan."
-                            )
+                            if response.status_code == 200:
+                                res_json = response.json()
+                                analysis_result = res_json.get("result") or res_json.get("diagnosis") or response.text
+                            else:
+                                raise Exception(f"API server returned status code {response.status_code}")
 
-                            response = model.generate_content([img, prompt])
-                            analysis_result = response.text
+                        except Exception as api_err:
+                            # 2. Seamless fallback to gemini-3.6-flash if backend API server is offline
+                            try:
+                                uploaded_file.seek(0)
+                                img = Image.open(uploaded_file)
+                                model = genai.GenerativeModel("gemini-3.6-flash")
 
+                                prompt = (
+                                    "Analyze this plant image. Provide the detected species name, "
+                                    "health status (Healthy/Diseased/Stressed), confidence percentage, "
+                                    "and a recommended treatment plan."
+                                )
+
+                                response = model.generate_content([img, prompt])
+                                analysis_result = response.text
+                            except Exception as gemini_err:
+                                st.error(f"Error running diagnosis: {gemini_err}")
+
+                        if analysis_result:
                             st.success("Analysis Complete!")
-                            st.markdown(analysis_result)
+                            st.write(analysis_result)
 
-                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+                            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             st.session_state.diagnosis_history.append({
                                 "time": timestamp,
-                                "plantregistry": plant_registry if plant_registry else "Unregistered",
-                                "result": analysis_result
+                                "result": analysis_result,
+                                "image": uploaded_file.getvalue()
                             })
 
-                        except Exception as e:
-                            st.error(f"Error running diagnosis: {e}")
-
-    # ============================================
+    # ==========================================
     # PAGE 2: WEEKLY PHOTO COMPARISON
-    # ============================================
+    # ==========================================
     elif page == "Weekly Photo Comparison":
         st.markdown("### 📅 Weekly Photo Comparison")
         st.markdown("Compare side-by-side plant images over time to evaluate growth or recovery.")
@@ -212,57 +219,34 @@ else:
                 except Exception as e:
                     st.error(f"Error running comparison: {e}")
 
-    # ============================================
-    # PAGE 3: PLANT REGISTRY TAB
-    # ============================================
-    elif page == "Plant Registry":
-        st.markdown("### 🌿 Plant Registry Management")
-        st.markdown("Manage and view your registered plants and their history.")
-        
-        with st.form("registry_form"):
-            reg_id = st.text_input("Plant Registry ID (e.g., REG-001)")
-            plant_name = st.text_input("Plant Name / Species (e.g., Alocasia or Ficus lyrata)")
-            location = st.text_input("Location (e.g., Living Room, Balcony)")
-            submitted = st.form_submit_button("Register Plant", type="primary")
-            
-            if submitted:
-                if reg_id and plant_name:
-                    st.session_state.registered_plants.append({
-                        "registry_id": reg_id,
-                        "name": plant_name,
-                        "location": location,
-                        "date": datetime.now().strftime("%Y-%m-%d")
-                    })
-                    st.success(f"Successfully registered {plant_name} under ID: {reg_id}!")
-                else:
-                    st.error("Please provide both a Registry ID and a Plant Name.")
-
-        st.markdown("---")
-        st.subheader("📋 Current Registered Plants")
-        
-        if not st.session_state.registered_plants:
-            st.info("No plants registered yet.")
-        else:
-            for p in st.session_state.registered_plants:
-                with st.expander(f"{p['registry_id']} — {p['name']}"):
-                    st.write(f"**Location:** {p['location']}")
-                    st.write(f"**Registration Date:** {p['date']}")
-
-    # ============================================
-    # PAGE 4: CHAT ASSISTANT
-    # ============================================
+    # ==========================================
+    # PAGE 3: CHAT ASSISTANT
+    # ==========================================
     elif page == "💬 Chat Assistant":
-        chat_col1, chat_col2 = st.columns([5, 1])
-        with chat_col1:
-            st.markdown("### 💬 Plant Doctor Chat Assistant")
-            st.markdown("Have questions about your plant? Upload a photo and type your question below!")
-        with chat_col2:
+        head_col1, head_col2 = st.columns([1, 5])
+        with head_col1:
+            st.markdown(
+                """
+                <div style="background-color: #0d2818; padding: 10px; border-radius: 12px; text-align: center; color: white;">
+                    <span style="font-size: 26px;">🎧</span><br>
+                    <b style="font-size: 12px; letter-spacing: 1px;">AI</b>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        with head_col2:
+            st.markdown("### Plant Doctor Chat Assistant")
+            st.markdown("Have questions about your plant? Upload a photo and chat live with the assistant!")
+
+        clear_col1, clear_col2 = st.columns([5, 1])
+        with clear_col2:
             if st.button("🗑️ New Chat", type="primary"):
                 st.session_state.messages = []
                 st.rerun()
 
         for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
+            avatar_icon = "🎧🤖" if message["role"] == "assistant" else None
+            with st.chat_message(message["role"], avatar=avatar_icon):
                 if isinstance(message["content"], list):
                     for item in message["content"]:
                         if isinstance(item, Image.Image):
@@ -289,6 +273,7 @@ else:
                 display_content.append(img_obj)
 
             st.session_state.messages.append({"role": "user", "content": display_content})
+            
             with st.chat_message("user"):
                 st.markdown(prompt)
                 if chat_image:
@@ -296,7 +281,6 @@ else:
 
             try:
                 model = genai.GenerativeModel("gemini-3.6-flash")
-                
                 formatted_history = []
                 for m in st.session_state.messages[:-1]:
                     role = "model" if m["role"] == "assistant" else "user"
@@ -307,14 +291,15 @@ else:
                 response = chat.send_message(content_to_send)
                 ai_response = response.text
 
-                st.markdown(ai_response)
+                with st.chat_message("assistant", avatar="🎧🤖"):
+                    st.markdown(ai_response)
                 st.session_state.messages.append({"role": "assistant", "content": ai_response})
             except Exception as e:
-                st.error(f"Error in chat assistant: {e}")
+                st.error(f"Error in chat: {e}")
 
-    # ============================================
-    # PAGE 5: SEARCH HISTORY
-    # ============================================
+    # ==========================================
+    # PAGE 4: SEARCH HISTORY
+    # ==========================================
     elif page == "📜 Search History":
         st.markdown("### 📜 Plant Search & Diagnosis History")
         st.markdown("Here is a log of all previous plant health analyses performed during your session.")
@@ -323,8 +308,7 @@ else:
             st.info("No plant diagnosis history found yet. Run an analysis on the 'Plant Diagnosis' page to see records here!")
         else:
             for idx, item in enumerate(reversed(st.session_state.diagnosis_history), 1):
-                reg_id = item.get("plantregistry", "Unregistered")
-                timestamp = item.get("time", "")
-                
-                with st.expander(f"Registry: {reg_id} — {timestamp}"):
+                with st.expander(f"Diagnosis #{len(st.session_state.diagnosis_history) - idx + 1} — {item['time']}"):
+                    if "image" in item and item["image"]:
+                        st.image(io.BytesIO(item["image"]), caption="Analyzed Plant Image", width=200)
                     st.markdown(item["result"])
