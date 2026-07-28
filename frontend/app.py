@@ -8,57 +8,65 @@ import io
 # Backend API Endpoint Configuration
 API_DIAGNOSE_URL = "http://localhost:8000/api/diagnose"
 
-# Configure Streamlit page layout (Wide layout to accommodate the side-by-side split screen)
+# Configure Streamlit page layout (Wide layout)
 st.set_page_config(
     page_title="Plant Doctor (Powered by AI)",
     page_icon="🌿",
     layout="wide"
 )
 
-# Custom CSS for Background Image, Custom Sidebar, and Split Layout
+# Custom CSS for Full-Screen Unbroken Background, Transparent Floating Card Layout, and Fixed Photo Selector Placement
 st.markdown("""
 <style>
-    /* Use your exact uploaded background photo for the entire app */
+    /* Full-screen unbroken background using the nursery mountain photo across the entire screen */
     .stApp {
-        background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
-                          url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2000&q=80");
+        background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), 
+                          url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2500&q=80");
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
     }
 
-    /* Sidebar Styling (1/4 screen width appearance with Dark Emerald Theme) */
+    /* Sidebar Styling (Dark Emerald Theme with exact 1/4 screen look) */
     [data-testid="stSidebar"] {
         background-color: #0d2818 !important;
         border-right: 2px solid rgba(255, 255, 255, 0.2);
-        min-width: 260px;
+        min-width: 280px;
     }
     
     [data-testid="stSidebar"] * {
         color: #ffffff !important;
     }
 
-    /* Frosted Glass Effect for Main Content Containers */
+    /* Transparent Frosted Glass Floating Card for Main Content */
     .block-container {
-        background: rgba(255, 255, 255, 0.90);
+        background: rgba(255, 255, 255, 0.82) !important;
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         border-radius: 16px;
-        padding: 3rem;
+        padding: 2.5rem 3rem;
         margin-top: 2rem;
         margin-bottom: 2rem;
-        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
-        color: #111111 !important;
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.5);
     }
 
-    /* Ensure all text inside containers is high-contrast black */
+    /* Ensure all text inside the container is sharp high-contrast black/dark */
     .block-container h1, .block-container h2, .block-container h3, 
     .block-container h4, .block-container h5, .block-container h6, 
     .block-container p, .block-container span, .block-container label, .block-container li {
         color: #111111 !important;
     }
 
-    /* Primary Buttons Styling */
+    /* File Uploader Box Styling (Ensures photo selection area is clearly visible inside the card) */
+    [data-testid="stFileUploader"] {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+        border: 2px dashed #0d2818 !important;
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+
+    /* Primary Action Buttons Styling */
     .stButton>button[kind="primary"] {
         background-color: #d90429 !important;
         color: white !important;
@@ -81,7 +89,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==========================================
-# SIDEBAR NAVIGATION (1/4 Width Navigation Panel)
+# SIDEBAR NAVIGATION (1/4 Width Panel)
 # ==========================================
 st.sidebar.title("🌿 Plant Doctor\n(Powered by AI)")
 st.sidebar.markdown("---")
@@ -107,11 +115,11 @@ if page == "🚪 Logout":
     st.stop()
 
 # ==========================================
-# PAGE 0: HOME SCREEN (Split-screen or Main Welcome Dashboard)
+# PAGE 0: HOME SCREEN
 # ==========================================
 if page == "🏠 Home":
     st.markdown("<h1 style='color: #0d2818; text-align: center;'>🌿 Plant Doctor (Powered by AI)</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size: 18px; color: #333333;'>Your ultimate intelligent assistant for plant care, health diagnostics, and botanical growth tracking.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 18px; color: #222222;'>Your ultimate intelligent assistant for plant care, health diagnostics, and botanical growth tracking.</p>", unsafe_allow_html=True)
     st.markdown("---")
 
     col1, col2 = st.columns(2, gap="large")
@@ -121,7 +129,7 @@ if page == "🏠 Home":
         st.markdown("""
         1. **Instant AI Diagnostics:** Snap or upload a photo of your plant's leaves, stems, or roots. Our advanced AI model immediately analyzes visual health indicators.
         2. **Interactive Chat Assistance:** Talk directly with the AI expert to ask follow-up questions regarding watering schedules, sunlight needs, and soil composition.
-        3. **Weekly Recovery Comparison:** Track progress over time by comparing side-by-side photos taken weeks apart to evaluate healing and growth.
+        3. **Weekly Recovery Comparison:** Track progress over time by comparing side-by-side photos taken over a 2-week period to evaluate healing and growth.
         """)
 
     with col2:
@@ -142,13 +150,15 @@ elif page == "🌱 Plant Diagnosis":
     st.markdown("<h1>🌱 Plant Diagnosis</h1>", unsafe_allow_html=True)
     st.markdown("<p>Upload a plant image for immediate AI health analysis.</p>", unsafe_allow_html=True)
 
+    # Photo selection placed properly inside the unified transparent card layout
     uploaded_file = st.file_uploader("Choose a plant image (JPG, JPEG, PNG)", type=["jpg", "jpeg", "png"])
 
     if uploaded_file is not None:
+        st.markdown("---")
         col1, col2 = st.columns(2)
 
         with col1:
-            st.image(uploaded_file, caption="Uploaded Plant", use_column_width=True)
+            st.image(uploaded_file, caption="Selected Plant Image Preview", use_column_width=True)
             run_analysis = st.button("Run Botanical Analysis", type="primary")
 
         with col2:
@@ -209,15 +219,16 @@ elif page == "📅 Weekly Photo Comparison":
         st.subheader("Week 1 (Baseline)")
         w1_file = st.file_uploader("Upload Week 1 Photo", type=["jpg", "jpeg", "png"], key="w1")
         if w1_file:
-            st.image(w1_file, use_column_width=True)
+            st.image(w1_file, caption="Selected Week 1 Photo", use_column_width=True)
 
     with col2:
         st.subheader("Week 2 (Current)")
         w2_file = st.file_uploader("Upload Week 2 Photo", type=["jpg", "jpeg", "png"], key="w2")
         if w2_file:
-            st.image(w2_file, use_column_width=True)
+            st.image(w2_file, caption="Selected Week 2 Photo", use_column_width=True)
 
     if w1_file and w2_file:
+        st.markdown("---")
         if st.button("🔍 Compare Growth & Recovery Progress", type="primary"):
             try:
                 i1 = Image.open(w1_file)
@@ -292,7 +303,7 @@ elif page == "💬 Chat Assistant":
     chat_image = st.file_uploader("Upload a plant photo for the assistant to inspect", type=["jpg", "jpeg", "png"], key="chat_uploader")
 
     if chat_image:
-        st.image(chat_image, caption="Attached Photo Preview", width=200)
+        st.image(chat_image, caption="Selected Chat Photo Preview", width=200)
 
     if prompt := st.chat_input("Ask a question about the photo or your plant care..."):
         content_to_send = [prompt]
