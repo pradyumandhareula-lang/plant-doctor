@@ -16,22 +16,28 @@ st.set_page_config(
     layout="wide"
 )
 
-# Function to convert your local image file to base64 string
+# Function to convert local background image file to base64 string safely
 def get_base64_of_bin_file(bin_file):
     with open(bin_file, 'rb') as f:
         data = f.read()
     return base64.b64encode(data).decode()
 
-# Replace "your_image_name.jpg" with the exact filename of your image saved in your project folder
-img_base64 = get_base64_of_bin_file("your_image_name.jpg")
+# Automatically tries to load your local background image, falls back if not found
+bg_css = ""
+try:
+    # Change "your_image_name.jpg" to your exact file name if you want to use your local file
+    img_base64 = get_base64_of_bin_file("your_image_name.jpg")
+    bg_css = f'url("data:image/jpg;base64,{img_base64}")'
+except:
+    # Reliable high-resolution nursery wallpaper fallback
+    bg_css = 'url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2500&q=80")'
 
-# Custom CSS with your local wallpaper image and frosted glass UI
+# Custom CSS for Full-Screen Unbroken Background and Frosted Glass Layout
 st.markdown(f"""
 <style>
-    /* Wallpaper Background Image for the whole app */
+    /* Full-screen unbroken wallpaper background across the entire app */
     .stApp {{
-        background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
-                          url("data:image/jpg;base64,{img_base64}");
+        background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), {bg_css};
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
@@ -39,27 +45,35 @@ st.markdown(f"""
 
     /* Sidebar Styling (Dark Emerald Theme) */
     [data-testid="stSidebar"] {{
-        background-color: #0d2818;
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: #0d2818 !important;
+        border-right: 2px solid rgba(255, 255, 255, 0.2);
     }}
     
     [data-testid="stSidebar"] * {{
         color: #ffffff !important;
     }}
 
-    /* Frosted Glass Effect for Main Content Containers */
+    /* Transparent Frosted Glass Floating Card for Main Content */
     .block-container {{
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         border-radius: 16px;
-        padding: 2.5rem;
+        padding: 2.5rem 3rem;
         margin-top: 2rem;
         margin-bottom: 2rem;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.5);
     }}
 
-    /* Primary Buttons Styling */
+    /* High contrast dark text styling inside containers */
+    .block-container h1, .block-container h2, .block-container h3, 
+    .block-container h4, .block-container h5, .block-container h6, 
+    .block-container p, .block-container span, .block-container label, .block-container li {{
+        color: #111111 !important;
+    }}
+
+    /* Primary Action Buttons Styling */
     .stButton>button[kind="primary"] {{
         background-color: #d90429 !important;
         color: white !important;
@@ -71,73 +85,6 @@ st.markdown(f"""
     .stButton>button[kind="primary"]:hover {{
         background-color: #ef233c !important;
     }}
-</style>
-""", unsafe_allow_html=True)
-
-
-# Custom CSS for Full-Screen Unbroken Background, Transparent Floating Card Layout, and Fixed Photo Selector Placement
-st.markdown("""
-<style>
-    /* Full-screen unbroken background using the nursery mountain photo across the entire screen */
-    .stApp {
-        background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), 
-                        url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2500&q=80");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-    }
-
-    /* Sidebar Styling (Dark Emerald Theme with exact 1/4 screen look) */
-    [data-testid="stSidebar"] {
-        background-color: #0d2818 !important;
-        border-right: 2px solid rgba(255, 255, 255, 0.2);
-        min-width: 280px;
-    }
-    
-    [data-testid="stSidebar"] * {
-        color: #ffffff !important;
-    }
-
-    /* Transparent Frosted Glass Floating Card for Main Content */
-    .block-container {
-        background: rgba(255, 255, 255, 0.82) !important;
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border-radius: 16px;
-        padding: 2.5rem 3rem;
-        margin-top: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-
-    /* Ensure all text inside the container is sharp high-contrast black/dark */
-    .block-container h1, .block-container h2, .block-container h3, 
-    .block-container h4, .block-container h5, .block-container h6, 
-    .block-container p, .block-container span, .block-container label, .block-container li {
-        color: #111111 !important;
-    }
-
-    /* File Uploader Box Styling (Ensures photo selection area is clearly visible inside the card) */
-    [data-testid="stFileUploader"] {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-        border: 2px dashed #0d2818 !important;
-        border-radius: 10px;
-        padding: 1.5rem;
-    }
-
-    /* Primary Action Buttons Styling */
-    .stButton>button[kind="primary"] {
-        background-color: #d90429 !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px;
-        font-weight: bold;
-    }
-    
-    .stButton>button[kind="primary"]:hover {
-        background-color: #ef233c !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
