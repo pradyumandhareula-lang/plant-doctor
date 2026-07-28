@@ -32,10 +32,9 @@ except:
     # Reliable high-resolution nursery wallpaper fallback
     bg_css = 'url("https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=2500&q=80")'
 
-# Custom CSS for Clear Wallpaper Background with Dark Tint Overlay
+# Custom CSS for Wallpaper Background with Dark Tint Overlay
 st.markdown(f"""
 <style>
-    /* Full-screen wallpaper background with a darker transparent tint */
     .stApp {{
         background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), {bg_css};
         background-size: cover;
@@ -43,7 +42,6 @@ st.markdown(f"""
         background-attachment: fixed;
     }}
     
-    /* Sidebar Styling (Dark Emerald Theme) */
     [data-testid="stSidebar"] {{
         background-color: #0d2818 !important;
         border-right: 2px solid rgba(255, 255, 255, 0.2);
@@ -53,7 +51,6 @@ st.markdown(f"""
         color: #ffffff !important;
     }}
 
-    /* Solid Frosted Glass Floating Card for Main Content */
     .block-container {{
         background: rgba(255, 255, 255, 0.90) !important;
         backdrop-filter: blur(14px);
@@ -66,7 +63,6 @@ st.markdown(f"""
         border: 1px solid rgba(255, 255, 255, 0.5);
     }}
 
-    /* High contrast dark text styling inside containers */
     .block-container h1, .block-container h2, .block-container h3, 
     .block-container h4, .block-container h5, .block-container h6, 
     .block-container p, .block-container span, .block-container label, .block-container li {{
@@ -74,7 +70,6 @@ st.markdown(f"""
         text-shadow: none !important;
     }}
 
-    /* Primary Action Buttons Styling */
     .stButton>button[kind="primary"] {{
         background-color: #d90429 !important;
         color: white !important;
