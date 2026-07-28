@@ -28,7 +28,7 @@ Respond strictly in valid JSON format matching this schema:
 }
 """
 
-@app.post("/analyze")
+@app.post("/api/analyze")
 async def analyze_plant(file: UploadFile = File(...)):
     try:
         # Read image
