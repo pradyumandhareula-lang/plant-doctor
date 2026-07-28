@@ -115,6 +115,45 @@ if page == "🚪 Logout":
     st.stop()
 
 # ==========================================
+# AUTHENTICATION & NAVIGATION GATE
+# ==========================================
+if not st.session_state.authenticated:
+    st.title("🔒 Plant Doctor AI - Login")
+    st.markdown("Please log in with your credentials to access the plant doctor system.")
+
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submit_button = st.form_submit_button("Log In", type="primary")
+
+    if submit_button:
+        if username == "admin" and password == "password123":
+            st.session_state.authenticated = True
+            st.success("Login successful! Loading app...")
+            st.rerun()
+        else:
+            st.error("Invalid username or password. Try username: admin, password: password123")
+    
+    st.stop() # Halts execution completely until logged in
+
+# ==========================================
+# MAIN APP SIDEBAR (Only runs if authenticated)
+# ==========================================
+st.sidebar.title("🌿 Plant Doctor AI")
+page = st.sidebar.selectbox(
+    "Navigation",
+    ["🏠 Home", "🌱 Plant Diagnosis", "📅 Weekly Photo Comparison", "🌿 Plant Registry", "💬 Chat Assistant", "📜 Search History"]
+)
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 👤 Account")
+
+if st.sidebar.button("🚪 Logout", type="primary"):
+    st.session_state.authenticated = False
+    st.success("Logged out successfully!")
+    st.rerun() # Forces an immediate clean refresh back to the login screen
+
+# ==========================================
 # PAGE 0: HOME SCREEN
 # ==========================================
 if page == "🏠 Home":
@@ -143,25 +182,6 @@ if page == "🏠 Home":
     st.markdown("---")
     st.markdown("<h3 style='text-align: center;'>Ready to care for your green companions? Use the sidebar to navigate to Plant Diagnosis or Chat!</h3>", unsafe_allow_html=True)
 
-# ==========================================
-# LOGIN PAGE
-# ==========================================
-if not st.session_state.authenticated:
-    st.title("🔐 Plant Doctor AI - Login")
-    st.markdown("Please log in with your credentials to access the plant doctor system.")
-
-    with st.form("login_form"):
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        submit_button = st.form_submit_button("Log In", type="primary")
-
-        if submit_button:
-            if username == "admin" and password == "password123":
-                st.session_state.authenticated = True
-                st.success("Login successful! Loading app...")
-                st.rerun()
-            else:
-                st.error("Invalid username or password. Try username: admin, password: password123")
 
 # ==========================================
 # PAGE 1: PLANT DIAGNOSIS
