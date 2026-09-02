@@ -255,7 +255,7 @@ elif page == "📅 Weekly Photo Comparison":
         st.subheader("Week 1 (Baseline)")
         w1_file = st.file_uploader("Upload Week 1 Photo", type=["jpg", "jpeg", "png"], key="w1")
         if w1_file:
-            st.image(w1_file, caption="Selected Week 1 Photo", use_column_width=True)
+            st.image(w1_file, caption="Selected Week 1 Photo", use_container_width=True)
 
     with col2:
         st.subheader("Week 2 (Current)")
