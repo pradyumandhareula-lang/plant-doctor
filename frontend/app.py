@@ -261,7 +261,7 @@ elif page == "📅 Weekly Photo Comparison":
         st.subheader("Week 2 (Current)")
         w2_file = st.file_uploader("Upload Week 2 Photo", type=["jpg", "jpeg", "png"], key="w2")
         if w2_file:
-            st.image(w2_file, caption="Selected Week 2 Photo", use_column_width=True)
+            st.image(w2_file, caption="Selected Week 2 Photo", use_container_width=True)
 
     if w1_file and w2_file:
         st.markdown("---")
