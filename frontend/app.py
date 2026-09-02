@@ -194,7 +194,7 @@ elif page == "🌱 Plant Diagnosis":
         col1, col2 = st.columns(2)
 
         with col1:
-            st.image(uploaded_file, caption="Selected Plant Image Preview", use_column_width=True)
+            st.image(uploaded_file, caption="Selected Plant Image Preview", use_container_width=True)
             run_analysis = st.button("Run Botanical Analysis", type="primary")
 
         with col2:
